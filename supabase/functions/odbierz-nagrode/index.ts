@@ -1,10 +1,13 @@
 // /supabase/functions/odbierz-nagrode/index.ts
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.8';
 // Używamy naszego skrótu "shared/" (tak jak robiliśmy "dobrze")
-import { corsHeaders } from 'shared/cors.ts';
+import { getCorsHeaders } from 'shared/cors.ts';
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 console.log('Gotowa do wydawania nagród!');
 serve(async (req: Request)=>{
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+  
   // Obsługa OPTIONS
   if (req.method === 'OPTIONS') {
     return new Response('ok', {

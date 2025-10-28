@@ -1,9 +1,12 @@
 // /supabase/functions/rozpocznij-zlecenie/index.ts
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.8';
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 console.log('Gotowa do przyjmowania zleceń!');
 serve(async (req: Request)=>{
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+  
   // To jest potrzebne, żeby przeglądarka mogła gadać z naszą funkcją
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
