@@ -9,10 +9,13 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [hasProfile, setHasProfile] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [initialCheckDone, setInitialCheckDone] = useState(false)
 
   useEffect(() => {
     (async () => {
+      console.log('App: Starting initial auth check')
       const { data } = await supabase.auth.getSession()
+      console.log('App: getSession result:', { hasSession: !!data.session })
       setSession(data.session ?? null)
       if (data.session) {
         const uid = data.session.user.id
@@ -22,11 +25,21 @@ export default function App() {
         console.log('check postacie (init):', { uid, p, error })
         setHasProfile(!!(p && p.id))
       }
+      console.log('App: Initial check complete, setting loading = false')
       setLoading(false)
+      setInitialCheckDone(true)
     })()
 
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_, sess) => {
-      setLoading(true) // Set loading when auth state changes
+    const { data: sub } = supabase.auth.onAuthStateChange(async (event, sess) => {
+      console.log('App: Auth state change:', event, { hasSession: !!sess })
+      
+      // Skip if this is the INITIAL_SESSION event (happens on mount)
+      // We already handled it above
+      if (!initialCheckDone && event === 'INITIAL_SESSION') {
+        console.log('App: Skipping INITIAL_SESSION event')
+        return
+      }
+      
       setSession(sess ?? null)
       if (sess?.user) {
         const uid = sess.user.id
@@ -36,7 +49,6 @@ export default function App() {
       } else {
         setHasProfile(false)
       }
-      setLoading(false) // Always set loading to false after checking
     })
     return () => sub.subscription.unsubscribe()
   }, [])
