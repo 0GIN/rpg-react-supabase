@@ -21,7 +21,7 @@ export default function Profile({ user, onProfileCreated }: Props) {
         .maybeSingle()
       // eslint-disable-next-line no-console
       console.log('Profile preload check:', { userId: user.id, data, error })
-      if (mounted && data) {
+      if (mounted && data && data.id) {
         onProfileCreated()
       }
     })()

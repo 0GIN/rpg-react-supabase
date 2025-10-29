@@ -19,7 +19,7 @@ export default function App() {
         // Debug: log if there is an error or no profile found
         // This helps diagnose cases where RLS or permissions prevent reading the row
         console.log('check postacie (init):', { uid, p, error })
-        setHasProfile(!!p)
+        setHasProfile(!!(p && p.id))
       }
     })()
 
@@ -29,7 +29,7 @@ export default function App() {
         const uid = sess.user.id
         const { data: p, error } = await supabase.from('postacie').select('*').eq('user_id', uid).maybeSingle()
         console.log('check postacie (auth change):', { uid, p, error })
-        setHasProfile(!!p)
+        setHasProfile(!!(p && p.id))
       } else {
         setHasProfile(false)
       }
