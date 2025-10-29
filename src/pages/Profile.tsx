@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../services/supabaseClient'
+import Layout from '../components/layout/Layout'
+import './Profile.css'
 
 interface Props {
   user: any
@@ -18,7 +20,6 @@ export default function Profile({ user, onProfileCreated }: Props) {
       const { data, error } = await supabase.from('postacie').insert([{ nick, user_id: user.id }])
       console.log('Insert result:', { data, error })
       if (error) {
-        // If unique constraint prevents second profile, assume it exists
         if ((error as any)?.code === '23505') {
           console.log('Profile already exists (23505), redirecting...')
           onProfileCreated()
@@ -38,34 +39,49 @@ export default function Profile({ user, onProfileCreated }: Props) {
     }
   }
 
+  async function handleLogout() {
+    const { error } = await supabase.auth.signOut()
+    console.log('Wylogowanie:', { error })
+  }
+
   return (
-    <div style={{ maxWidth: 400, margin: '4rem auto', padding: '2rem', border: '2px solid #333', borderRadius: 8 }}>
-      <h2>Stwórz postać</h2>
-      <input
-        type="text"
-        placeholder="Nick"
-        value={nick}
-        onChange={e => setNick(e.target.value)}
-        style={{ width: '100%', marginBottom: 16, padding: 8 }}
-        disabled={loading}
-      />
-      <button
-        onClick={handleCreateProfile}
-        disabled={loading || !nick.trim()}
-        style={{ width: '100%', marginBottom: 16 }}
-      >
-        {loading ? 'Tworzenie...' : 'Stwórz'}
-      </button>
-      <button
-        onClick={async () => {
-          const { error } = await supabase.auth.signOut();
-          console.log('Wylogowanie:', { error });
-        }}
-        disabled={loading}
-        style={{ width: '100%' }}
-      >
-        Wyloguj
-      </button>
-    </div>
+    <Layout showUserInfo={false}>
+      <div className="profile-container">
+        <div className="profile-box">
+          <h1 className="profile-title">Stwórz Postać</h1>
+          <p className="profile-subtitle">Wybierz swoją tożsamość w Neon City</p>
+          
+          <div className="profile-form">
+            <label className="profile-label" htmlFor="nick">Nick</label>
+            <input
+              id="nick"
+              type="text"
+              placeholder="Wprowadź swój nick..."
+              value={nick}
+              onChange={e => setNick(e.target.value)}
+              className="profile-input"
+              disabled={loading}
+              maxLength={20}
+            />
+            
+            <button
+              onClick={handleCreateProfile}
+              disabled={loading || !nick.trim()}
+              className="btn-create-profile"
+            >
+              {loading ? 'Tworzenie...' : 'Stwórz Postać'}
+            </button>
+            
+            <button
+              onClick={handleLogout}
+              disabled={loading}
+              className="btn-logout-profile"
+            >
+              Wyloguj
+            </button>
+          </div>
+        </div>
+      </div>
+    </Layout>
   )
 }

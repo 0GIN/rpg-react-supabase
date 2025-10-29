@@ -1,0 +1,86 @@
+.mission-card {
+  background: linear-gradient(135deg, rgba(0, 217, 255, 0.05) 0%, rgba(255, 0, 255, 0.05) 100%);
+  border: 1px solid rgba(0, 217, 255, 0.3);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.mission-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 217, 255, 0.4);
+  border-color: #00d9ff;
+}
+
+.mission-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.mission-title {
+  color: #00d9ff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}
+
+.mission-duration {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mission-description {
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.mission-rewards {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.reward {
+  background: rgba(0, 217, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 217, 255, 0.3);
+  font-weight: 600;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.btn-start-mission {
+  width: 100%;
+  background: linear-gradient(135deg, #00d9ff 0%, #ff00ff 100%);
+  border: none;
+  padding: 0.8rem;
+  border-radius: 8px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-start-mission:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 217, 255, 0.6);
+}
+
+.btn-start-mission:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
