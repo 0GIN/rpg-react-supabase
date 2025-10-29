@@ -9,99 +9,74 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [hasProfile, setHasProfile] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadingProfile, setLoadingProfile] = useState(true)
 
   useEffect(() => {
     // Initial check on mount
     (async () => {
       try {
         console.log('App: Starting initial auth check')
-        
-        // Add timeout to prevent infinite loading
         const sessionPromise = supabase.auth.getSession()
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Session check timeout after 5s')), 5000)
         )
-        
         const { data, error: sessionError } = await Promise.race([
           sessionPromise,
           timeoutPromise
         ]) as any
-        
         if (sessionError) {
           console.error('App: Error getting session:', sessionError)
           setLoading(false)
+          setLoadingProfile(false)
           return
         }
-        
-        console.log('App: getSession result:', { hasSession: !!data.session })
         setSession(data.session ?? null)
-        
         if (data.session) {
+          setLoadingProfile(true)
           const uid = data.session.user.id
-          console.log('App: Checking profile for user:', uid)
-          
-          // Add timeout to profile check
-          const profilePromise = supabase
-            .from('postacie')
-            .select('*')
-            .eq('user_id', uid)
-            .maybeSingle()
-          
-          const profileTimeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Profile check timeout after 5s')), 5000)
-          )
-          
-          const { data: p, error } = await Promise.race([
-            profilePromise,
-            profileTimeoutPromise
-          ]) as any
-          
-          console.log('App: Profile check result:', { 
-            hasProfile: !!(p && p.id), 
-            profileData: p, 
-            error 
-          })
-          
+          const { data: p, error: selectError } = await supabase.from('postacie').select('*').eq('user_id', uid).maybeSingle()
+          console.log('App: SELECT postacie', { uid, profile: p, hasProfile: !!(p && p.id), selectError });
+          if (selectError) {
+            console.error('App: SELECT postacie error:', selectError)
+          }
           setHasProfile(!!(p && p.id))
+          setLoadingProfile(false)
+        } else {
+          setLoadingProfile(false)
         }
       } catch (err) {
-        console.error('App: Unexpected error in initial check:', err)
-        // On error, still allow user to proceed (show login screen)
+        setLoading(false)
+        setLoadingProfile(false)
       } finally {
-        console.log('App: Initial check complete, setting loading = false')
         setLoading(false)
       }
     })()
 
     // Listen for auth changes (login, logout, token refresh)
-    const { data: sub } = supabase.auth.onAuthStateChange(async (event, sess) => {
-      console.log('App: Auth state change event:', event, { hasSession: !!sess })
-      
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_, sess) => {
       setSession(sess ?? null)
-      
       if (sess?.user) {
+        setLoadingProfile(true)
         const uid = sess.user.id
-        const { data: p, error } = await supabase
+        const { data: p } = await supabase
           .from('postacie')
           .select('*')
           .eq('user_id', uid)
           .maybeSingle()
-        
-        console.log('App: Profile check after auth change:', { hasProfile: !!(p && p.id), error })
         setHasProfile(!!(p && p.id))
+        setLoadingProfile(false)
       } else {
         setHasProfile(false)
+        setLoadingProfile(false)
       }
     })
-    
     return () => {
-      console.log('App: Cleaning up auth listener')
       sub.subscription.unsubscribe()
     }
   }, [])
 
   // Show loading spinner while checking if user has character
-  if (loading) {
+  if (loading || loadingProfile) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <p>Ładowanie...</p>
@@ -109,9 +84,20 @@ export default function App() {
     )
   }
 
-  if (!session) return <Login />
+  // ZAWSZE: brak sesji lub brak usera = ekran logowania
+  if (!session || !session.user || typeof session.user.id !== 'string' || !session.user.id) {
+    return <Login />
+  }
 
-  if (!hasProfile) return <Profile user={session.user} onProfileCreated={() => setHasProfile(true)} />
+  // Zalogowany, ale nie masz postaci
+  if (session && session.user && !hasProfile) {
+    return <Profile user={session.user} onProfileCreated={() => setHasProfile(true)} />
+  }
 
-  return <Dashboard />
+  // Zalogowany i masz postać
+  if (session && session.user && hasProfile) {
+    return <Dashboard />
+  }
+
+  return null
 }

@@ -57,14 +57,33 @@ export default function Profile({ user, onProfileCreated }: Props) {
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: '3rem auto' }}>
-      <h3>Stwórz postać</h3>
-      <input value={nick} onChange={e => setNick(e.target.value)} placeholder="Nick" />
-      <div style={{ marginTop: '1rem' }}>
-        <button onClick={handleCreateProfile} disabled={loading}>
-          {loading ? 'Tworzenie...' : 'Stwórz'}
-        </button>
-      </div>
+    <div style={{ maxWidth: 400, margin: '4rem auto', padding: '2rem', border: '2px solid #333', borderRadius: 8 }}>
+      <h2>Stwórz postać</h2>
+      <input
+        type="text"
+        placeholder="Nick"
+        value={nick}
+        onChange={e => setNick(e.target.value)}
+        style={{ width: '100%', marginBottom: 16, padding: 8 }}
+        disabled={loading}
+      />
+      <button
+        onClick={handleCreateProfile}
+        disabled={loading || !nick.trim()}
+        style={{ width: '100%', marginBottom: 16 }}
+      >
+        {loading ? 'Tworzenie...' : 'Stwórz'}
+      </button>
+      <button
+        onClick={async () => {
+          const { error } = await supabase.auth.signOut();
+          console.log('Wylogowanie:', { error });
+        }}
+        disabled={loading}
+        style={{ width: '100%' }}
+      >
+        Wyloguj
+      </button>
     </div>
   )
 }
