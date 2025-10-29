@@ -9,74 +9,77 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [hasProfile, setHasProfile] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [loadingProfile, setLoadingProfile] = useState(true)
+
+  // Single function to check profile
+  const checkProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('postacie')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle()
+    
+    console.log('App: checkProfile', { userId, data, error })
+    
+    if (error) {
+      console.error('App: Error checking profile:', error)
+      return false
+    }
+    
+    return !!(data && data.id)
+  }
 
   useEffect(() => {
     // Initial check on mount
-    (async () => {
+    const initAuth = async () => {
       try {
         console.log('App: Starting initial auth check')
-        const sessionPromise = supabase.auth.getSession()
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout after 5s')), 5000)
-        )
-        const { data, error: sessionError } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as any
-        if (sessionError) {
-          console.error('App: Error getting session:', sessionError)
+        const { data, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error('App: Error getting session:', error)
           setLoading(false)
-          setLoadingProfile(false)
           return
         }
-        setSession(data.session ?? null)
-        if (data.session) {
-          setLoadingProfile(true)
-          const uid = data.session.user.id
-          const { data: p, error: selectError } = await supabase.from('postacie').select('*').eq('user_id', uid).maybeSingle()
-          console.log('App: SELECT postacie', { uid, profile: p, hasProfile: !!(p && p.id), selectError });
-          if (selectError) {
-            console.error('App: SELECT postacie error:', selectError)
-          }
-          setHasProfile(!!(p && p.id))
-          setLoadingProfile(false)
+
+        const currentSession = data.session
+        setSession(currentSession)
+
+        if (currentSession?.user?.id) {
+          const profileExists = await checkProfile(currentSession.user.id)
+          setHasProfile(profileExists)
         } else {
-          setLoadingProfile(false)
+          setHasProfile(false)
         }
       } catch (err) {
-        setLoading(false)
-        setLoadingProfile(false)
+        console.error('App: Exception in initAuth:', err)
       } finally {
         setLoading(false)
       }
-    })()
+    }
 
-    // Listen for auth changes (login, logout, token refresh)
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_, sess) => {
-      setSession(sess ?? null)
-      if (sess?.user) {
-        setLoadingProfile(true)
-        const uid = sess.user.id
-        const { data: p } = await supabase
-          .from('postacie')
-          .select('*')
-          .eq('user_id', uid)
-          .maybeSingle()
-        setHasProfile(!!(p && p.id))
-        setLoadingProfile(false)
+    initAuth()
+
+    // Listen for auth changes
+    const { data: sub } = supabase.auth.onAuthStateChange(async (event, sess) => {
+      console.log('App: Auth state changed', { event, userId: sess?.user?.id })
+      
+      setSession(sess)
+
+      if (sess?.user?.id) {
+        const profileExists = await checkProfile(sess.user.id)
+        setHasProfile(profileExists)
       } else {
         setHasProfile(false)
-        setLoadingProfile(false)
       }
     })
+
     return () => {
       sub.subscription.unsubscribe()
     }
   }, [])
 
-  // Show loading spinner while checking if user has character
-  if (loading || loadingProfile) {
+  // Show loading spinner while checking auth
+  if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <p>Ładowanie...</p>
@@ -84,20 +87,16 @@ export default function App() {
     )
   }
 
-  // ZAWSZE: brak sesji lub brak usera = ekran logowania
-  if (!session || !session.user || typeof session.user.id !== 'string' || !session.user.id) {
+  // No session = show login
+  if (!session?.user?.id) {
     return <Login />
   }
 
-  // Zalogowany, ale nie masz postaci
-  if (session && session.user && !hasProfile) {
+  // Logged in but no profile = show profile creation
+  if (!hasProfile) {
     return <Profile user={session.user} onProfileCreated={() => setHasProfile(true)} />
   }
 
-  // Zalogowany i masz postać
-  if (session && session.user && hasProfile) {
-    return <Dashboard />
-  }
-
-  return null
+  // Logged in and has profile = show dashboard
+  return <Dashboard />
 }
