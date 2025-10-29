@@ -31,18 +31,29 @@ export default function Profile({ user, onProfileCreated }: Props) {
   async function handleCreateProfile() {
     if (!nick.trim()) return
     setLoading(true)
-    const { error } = await supabase.from('postacie').insert([{ nick, user_id: user.id }])
-    if (error) {
-      // If unique constraint prevents second profile, assume it exists
-      if ((error as any)?.code === '23505') {
-        onProfileCreated()
+    try {
+      console.log('Creating profile:', { nick, userId: user.id })
+      const { data, error } = await supabase.from('postacie').insert([{ nick, user_id: user.id }])
+      console.log('Insert result:', { data, error })
+      if (error) {
+        // If unique constraint prevents second profile, assume it exists
+        if ((error as any)?.code === '23505') {
+          console.log('Profile already exists (23505), redirecting...')
+          onProfileCreated()
+        } else {
+          console.error('Insert error:', error)
+          alert('Błąd: ' + error.message)
+        }
       } else {
-        alert('Błąd: ' + error.message)
+        console.log('Profile created successfully')
+        onProfileCreated()
       }
-    } else {
-      onProfileCreated()
+    } catch (err) {
+      console.error('Exception in handleCreateProfile:', err)
+      alert('Błąd połączenia: ' + (err as Error).message)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
