@@ -15,7 +15,17 @@ export default function App() {
     (async () => {
       try {
         console.log('App: Starting initial auth check')
-        const { data, error: sessionError } = await supabase.auth.getSession()
+        
+        // Add timeout to prevent infinite loading
+        const sessionPromise = supabase.auth.getSession()
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout after 5s')), 5000)
+        )
+        
+        const { data, error: sessionError } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as any
         
         if (sessionError) {
           console.error('App: Error getting session:', sessionError)
@@ -30,11 +40,21 @@ export default function App() {
           const uid = data.session.user.id
           console.log('App: Checking profile for user:', uid)
           
-          const { data: p, error } = await supabase
+          // Add timeout to profile check
+          const profilePromise = supabase
             .from('postacie')
             .select('*')
             .eq('user_id', uid)
             .maybeSingle()
+          
+          const profileTimeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Profile check timeout after 5s')), 5000)
+          )
+          
+          const { data: p, error } = await Promise.race([
+            profilePromise,
+            profileTimeoutPromise
+          ]) as any
           
           console.log('App: Profile check result:', { 
             hasProfile: !!(p && p.id), 
@@ -46,6 +66,7 @@ export default function App() {
         }
       } catch (err) {
         console.error('App: Unexpected error in initial check:', err)
+        // On error, still allow user to proceed (show login screen)
       } finally {
         console.log('App: Initial check complete, setting loading = false')
         setLoading(false)
