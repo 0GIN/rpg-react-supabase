@@ -33,7 +33,14 @@ export default function App() {
     const initAuth = async () => {
       try {
         console.log('App: Starting initial auth check')
-        const { data, error } = await supabase.auth.getSession()
+        
+        // Add timeout to prevent infinite loading
+        const sessionPromise = supabase.auth.getSession()
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session timeout')), 5000)
+        )
+        
+        const { data, error } = await Promise.race([sessionPromise, timeoutPromise]) as any
         
         if (error) {
           console.error('App: Error getting session:', error)
@@ -42,17 +49,24 @@ export default function App() {
         }
 
         const currentSession = data.session
+        console.log('App: Got session', { hasSession: !!currentSession, userId: currentSession?.user?.id })
         setSession(currentSession)
 
         if (currentSession?.user?.id) {
+          console.log('App: Checking profile for user:', currentSession.user.id)
           const profileExists = await checkProfile(currentSession.user.id)
+          console.log('App: Profile check result:', profileExists)
           setHasProfile(profileExists)
         } else {
+          console.log('App: No session, setting hasProfile to false')
           setHasProfile(false)
         }
       } catch (err) {
         console.error('App: Exception in initAuth:', err)
+        setSession(null)
+        setHasProfile(false)
       } finally {
+        console.log('App: Finished auth check, setting loading to false')
         setLoading(false)
       }
     }
