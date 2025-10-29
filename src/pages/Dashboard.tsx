@@ -95,6 +95,14 @@ export default function Dashboard() {
 
   const timeLeft = getRemainingTime()
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
+  }
+
   return (
     <div style={{ maxWidth: 900, margin: '2rem auto' }}>
       <header style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
@@ -102,7 +110,7 @@ export default function Dashboard() {
           <h2>Neon City — Dashboard</h2>
           {postac && <p><strong>{postac.nick}</strong> | Kredyty: {postac.kredyty} | Street Cred: {postac.street_cred}</p>}
         </div>
-        <button onClick={() => supabase.auth.signOut()}>Wyloguj</button>
+        <button onClick={handleLogout}>Wyloguj</button>
       </header>
 
       {aktywne ? (
