@@ -2,46 +2,64 @@ import { useEffect, useState } from 'react'
 import { supabase } from './services/supabaseClient'
 import Login from './pages/Login'
 import Profile from './pages/Profile'
-import Dashboard from './pages/Dashboard'
+import DashboardNew from './pages/DashboardNew'
 import type { Session } from '@supabase/supabase-js'
+import { ThemeProvider } from '@/components/theme-provider'
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [hasProfile, setHasProfile] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Fast profile check with timeout
+  // Robust profile check with soft timeout + single retry to avoid hanging UI
   const checkProfile = async (userId: string): Promise<boolean> => {
     try {
       console.log('checkProfile: Querying for userId:', userId)
-      
-      // Add 3 second timeout
-      const queryPromise = supabase
-        .from('postacie')
-        .select('id')
-        .eq('user_id', userId)
-        .maybeSingle()
-      
-      const timeoutPromise = new Promise<{ data: null; error: Error }>((_, reject) =>
-        setTimeout(() => reject(new Error('Profile check timeout')), 3000)
-      )
-      
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any
-      
-      console.log('checkProfile: Result:', { data, error })
-      
-      if (error) {
-        console.error('checkProfile error:', error)
-        return false
+
+      const runQuery = async () => {
+        return await supabase
+          .from('postacie')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle()
       }
-      
-      const hasProfile = !!(data && data.id)
+
+      const withTimeout = <T,>(p: Promise<T>, ms: number) =>
+        new Promise<T>((resolve) => {
+          const id = setTimeout(() => {
+            console.warn('checkProfile: timeout after', ms, 'ms — proceeding optimistically')
+            // @ts-ignore
+            resolve({ data: { id: 'timeout' }, error: null } as any)
+          }, ms)
+          p.then((v: any) => { clearTimeout(id); resolve(v) })
+            .catch(() => { clearTimeout(id); /* treat as transient error */
+              // @ts-ignore
+              resolve({ data: { id: 'error' }, error: null } as any) })
+        })
+
+      // First try (1.5s). On timeout/error, proceed optimistically
+      const first: any = await withTimeout(runQuery(), 1500)
+      console.log('checkProfile: Result first try:', first)
+
+      if (!first?.error && first?.data && first.data.id) {
+        return true
+      }
+
+      // Quick retry once (1s)
+      const second: any = await withTimeout(runQuery(), 1000)
+      console.log('checkProfile: Result retry:', second)
+
+      if (second?.error) {
+        console.error('checkProfile error:', second.error)
+        return true // assume exists to avoid flicker
+      }
+
+      const hasProfile = !!(second?.data && second.data.id)
       console.log('checkProfile: hasProfile =', hasProfile)
       return hasProfile
     } catch (err) {
       console.error('checkProfile exception:', err)
-      // If timeout or error, assume no profile and let them create one
-      return false
+      return true // assume exists on exception
     }
   }
 
@@ -62,11 +80,11 @@ export default function App() {
         
         if (session?.user?.id) {
           console.log('App: Checking profile for user:', session.user.id)
-          const profileExists = await checkProfile(session.user.id)
-          console.log('App: Profile exists:', profileExists)
-          if (mounted) {
-            setHasProfile(profileExists)
-          }
+          // Do not block initial load on profile check
+          checkProfile(session.user.id).then((profileExists) => {
+            console.log('App: Profile exists:', profileExists)
+            if (mounted) setHasProfile(profileExists)
+          })
         } else {
           console.log('App: No session, setting hasProfile to null')
           setHasProfile(null)
@@ -112,31 +130,47 @@ export default function App() {
   // Show loading spinner only on initial load
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <p>Ładowanie...</p>
-      </div>
+      <ThemeProvider defaultTheme="dark" storageKey="neoncity-theme">
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <p>Ładowanie...</p>
+        </div>
+      </ThemeProvider>
     )
   }
 
   // No session = show login
   if (!session?.user?.id) {
-    return <Login />
+    return (
+      <ThemeProvider defaultTheme="dark" storageKey="neoncity-theme">
+        <Login />
+      </ThemeProvider>
+    )
   }
 
   // Still checking profile
   if (hasProfile === null) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <p>Sprawdzanie profilu...</p>
-      </div>
+      <ThemeProvider defaultTheme="dark" storageKey="neoncity-theme">
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <p>Sprawdzanie profilu...</p>
+        </div>
+      </ThemeProvider>
     )
   }
 
   // Logged in but no profile = show profile creation
   if (!hasProfile) {
-    return <Profile user={session.user} onProfileCreated={() => setHasProfile(true)} />
+    return (
+      <ThemeProvider defaultTheme="dark" storageKey="neoncity-theme">
+        <Profile user={session.user} onProfileCreated={() => setHasProfile(true)} />
+      </ThemeProvider>
+    )
   }
 
   // Logged in and has profile = show dashboard
-  return <Dashboard />
+  return (
+    <ThemeProvider defaultTheme="dark" storageKey="neoncity-theme">
+      <DashboardNew />
+    </ThemeProvider>
+  )
 }

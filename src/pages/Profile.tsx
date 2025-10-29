@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { supabase } from '../services/supabaseClient'
-import Layout from '../components/layout/Layout'
-import './Profile.css'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { User, LogOut } from 'lucide-react'
 
 interface Props {
   user: any
@@ -45,43 +48,61 @@ export default function Profile({ user, onProfileCreated }: Props) {
   }
 
   return (
-    <Layout showUserInfo={false}>
-      <div className="profile-container">
-        <div className="profile-box">
-          <h1 className="profile-title">Stwórz Postać</h1>
-          <p className="profile-subtitle">Wybierz swoją tożsamość w Neon City</p>
-          
-          <div className="profile-form">
-            <label className="profile-label" htmlFor="nick">Nick</label>
-            <input
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#16213e] to-[#1a1a2e] flex items-center justify-center p-4">
+      <Card className="w-full max-w-md border-magenta/30 shadow-2xl shadow-magenta/20">
+        <CardHeader className="text-center space-y-2">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-cyan to-magenta rounded-full flex items-center justify-center mb-4">
+            <User className="w-8 h-8 text-white" />
+          </div>
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-magenta to-cyan bg-clip-text text-transparent">
+            Stwórz Postać
+          </CardTitle>
+          <CardDescription className="text-base">
+            Wybierz swoją tożsamość w Neon City
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="nick" className="text-sm font-semibold uppercase tracking-wider">
+              Nick
+            </Label>
+            <Input
               id="nick"
               type="text"
               placeholder="Wprowadź swój nick..."
               value={nick}
               onChange={e => setNick(e.target.value)}
-              className="profile-input"
               disabled={loading}
               maxLength={20}
+              className="text-base"
             />
-            
-            <button
-              onClick={handleCreateProfile}
-              disabled={loading || !nick.trim()}
-              className="btn-create-profile"
-            >
-              {loading ? 'Tworzenie...' : 'Stwórz Postać'}
-            </button>
-            
-            <button
-              onClick={handleLogout}
-              disabled={loading}
-              className="btn-logout-profile"
-            >
-              Wyloguj
-            </button>
+            <p className="text-xs text-muted-foreground">
+              Max 20 znaków. To będzie Twoja nazwa w grze.
+            </p>
           </div>
-        </div>
-      </div>
-    </Layout>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-3">
+          <Button
+            variant="default"
+            size="lg"
+            className="w-full"
+            onClick={handleCreateProfile}
+            disabled={loading || !nick.trim()}
+          >
+            {loading ? 'Tworzenie...' : 'Stwórz Postać'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full"
+            onClick={handleLogout}
+            disabled={loading}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Wyloguj
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   )
 }
