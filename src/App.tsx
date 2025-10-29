@@ -8,6 +8,7 @@ import type { Session } from '@supabase/supabase-js'
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
   const [hasProfile, setHasProfile] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     (async () => {
@@ -21,6 +22,7 @@ export default function App() {
         console.log('check postacie (init):', { uid, p, error })
         setHasProfile(!!(p && p.id))
       }
+      setLoading(false)
     })()
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (_, sess) => {
@@ -36,6 +38,15 @@ export default function App() {
     })
     return () => sub.subscription.unsubscribe()
   }, [])
+
+  // Show loading spinner while checking if user has character
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <p>Ładowanie...</p>
+      </div>
+    )
+  }
 
   if (!session) return <Login />
 
