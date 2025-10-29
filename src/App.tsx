@@ -29,19 +29,23 @@ export default function App() {
   }
 
   useEffect(() => {
+    let mounted = true
+
     // Initial check on mount
     const initAuth = async () => {
       try {
         console.log('App: Starting initial auth check')
         
-        // Add timeout to prevent infinite loading
+        // Try to get session with reasonable timeout
         const sessionPromise = supabase.auth.getSession()
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session timeout')), 5000)
+          setTimeout(() => reject(new Error('Session timeout')), 10000)
         )
         
         const { data, error } = await Promise.race([sessionPromise, timeoutPromise]) as any
         
+        if (!mounted) return
+
         if (error) {
           console.error('App: Error getting session:', error)
           setLoading(false)
@@ -55,6 +59,7 @@ export default function App() {
         if (currentSession?.user?.id) {
           console.log('App: Checking profile for user:', currentSession.user.id)
           const profileExists = await checkProfile(currentSession.user.id)
+          if (!mounted) return
           console.log('App: Profile check result:', profileExists)
           setHasProfile(profileExists)
         } else {
@@ -63,11 +68,14 @@ export default function App() {
         }
       } catch (err) {
         console.error('App: Exception in initAuth:', err)
+        if (!mounted) return
         setSession(null)
         setHasProfile(false)
       } finally {
-        console.log('App: Finished auth check, setting loading to false')
-        setLoading(false)
+        if (mounted) {
+          console.log('App: Finished auth check, setting loading to false')
+          setLoading(false)
+        }
       }
     }
 
@@ -77,10 +85,13 @@ export default function App() {
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, sess) => {
       console.log('App: Auth state changed', { event, userId: sess?.user?.id })
       
+      if (!mounted) return
+
       setSession(sess)
 
       if (sess?.user?.id) {
         const profileExists = await checkProfile(sess.user.id)
+        if (!mounted) return
         setHasProfile(profileExists)
       } else {
         setHasProfile(false)
@@ -88,6 +99,7 @@ export default function App() {
     })
 
     return () => {
+      mounted = false
       sub.subscription.unsubscribe()
     }
   }, [])
