@@ -10,15 +10,23 @@ export default function App() {
   const [hasProfile, setHasProfile] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Fast profile check
+  // Fast profile check with timeout
   const checkProfile = async (userId: string): Promise<boolean> => {
     try {
       console.log('checkProfile: Querying for userId:', userId)
-      const { data, error } = await supabase
+      
+      // Add 3 second timeout
+      const queryPromise = supabase
         .from('postacie')
         .select('id')
         .eq('user_id', userId)
         .maybeSingle()
+      
+      const timeoutPromise = new Promise<{ data: null; error: Error }>((_, reject) =>
+        setTimeout(() => reject(new Error('Profile check timeout')), 3000)
+      )
+      
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any
       
       console.log('checkProfile: Result:', { data, error })
       
@@ -32,6 +40,7 @@ export default function App() {
       return hasProfile
     } catch (err) {
       console.error('checkProfile exception:', err)
+      // If timeout or error, assume no profile and let them create one
       return false
     }
   }
