@@ -26,6 +26,7 @@ export default function App() {
     })()
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (_, sess) => {
+      setLoading(true) // Set loading when auth state changes
       setSession(sess ?? null)
       if (sess?.user) {
         const uid = sess.user.id
@@ -35,6 +36,7 @@ export default function App() {
       } else {
         setHasProfile(false)
       }
+      setLoading(false) // Always set loading to false after checking
     })
     return () => sub.subscription.unsubscribe()
   }, [])
