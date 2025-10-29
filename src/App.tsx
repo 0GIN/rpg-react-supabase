@@ -13,18 +13,23 @@ export default function App() {
   // Fast profile check
   const checkProfile = async (userId: string): Promise<boolean> => {
     try {
+      console.log('checkProfile: Querying for userId:', userId)
       const { data, error } = await supabase
         .from('postacie')
         .select('id')
         .eq('user_id', userId)
         .maybeSingle()
       
+      console.log('checkProfile: Result:', { data, error })
+      
       if (error) {
         console.error('checkProfile error:', error)
         return false
       }
       
-      return !!(data && data.id)
+      const hasProfile = !!(data && data.id)
+      console.log('checkProfile: hasProfile =', hasProfile)
+      return hasProfile
     } catch (err) {
       console.error('checkProfile exception:', err)
       return false
@@ -36,20 +41,36 @@ export default function App() {
 
     // Get initial session
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!mounted) return
-      
-      setSession(session)
-      
-      if (session?.user?.id) {
-        const profileExists = await checkProfile(session.user.id)
+      try {
+        console.log('App: Getting session...')
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        console.log('App: Session result:', { hasSession: !!session, userId: session?.user?.id, error })
+        
+        if (!mounted) return
+        
+        setSession(session)
+        
+        if (session?.user?.id) {
+          console.log('App: Checking profile for user:', session.user.id)
+          const profileExists = await checkProfile(session.user.id)
+          console.log('App: Profile exists:', profileExists)
+          if (mounted) {
+            setHasProfile(profileExists)
+          }
+        } else {
+          console.log('App: No session, setting hasProfile to null')
+          setHasProfile(null)
+        }
+      } catch (err) {
+        console.error('App: init error:', err)
+        setHasProfile(null)
+      } finally {
         if (mounted) {
-          setHasProfile(profileExists)
+          console.log('App: Init complete, setting loading to false')
+          setLoading(false)
         }
       }
-      
-      setLoading(false)
     }
 
     init()
