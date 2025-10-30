@@ -229,14 +229,23 @@ serve(async (req) => {
         )
       }
 
-      // Update clothing paths for mannequin
+      // Update clothing paths for mannequin (if column exists)
       const updateData: any = { }
 
       if (itemDef.type === 'clothing' && itemDef.clothingSlot && itemDef.clothingPath) {
-        const clothing = postac.clothing || {}
-        updateData.clothing = {
-          ...clothing,
-          [itemDef.clothingSlot]: itemDef.clothingPath
+        let canUpdateClothing = true
+        try {
+          const probe = await supabaseAdmin.from('postacie').select('clothing').limit(1)
+          if (probe.error) canUpdateClothing = false
+        } catch (_) {
+          canUpdateClothing = false
+        }
+        if (canUpdateClothing) {
+          const clothing = (postac as any).clothing || {}
+          updateData.clothing = {
+            ...clothing,
+            [itemDef.clothingSlot]: itemDef.clothingPath
+          }
         }
       }
 
@@ -302,14 +311,23 @@ serve(async (req) => {
         )
       }
 
-      // Update clothing paths for mannequin
+      // Update clothing paths for mannequin (if column exists)
       const updateData: any = { }
 
       if (itemDef.type === 'clothing' && itemDef.clothingSlot) {
-        const clothing = postac.clothing || {}
-        updateData.clothing = {
-          ...clothing,
-          [itemDef.clothingSlot]: null
+        let canUpdateClothing = true
+        try {
+          const probe = await supabaseAdmin.from('postacie').select('clothing').limit(1)
+          if (probe.error) canUpdateClothing = false
+        } catch (_) {
+          canUpdateClothing = false
+        }
+        if (canUpdateClothing) {
+          const clothing = (postac as any).clothing || {}
+          updateData.clothing = {
+            ...clothing,
+            [itemDef.clothingSlot]: null
+          }
         }
       }
 
