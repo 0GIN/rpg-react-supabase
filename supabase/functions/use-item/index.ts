@@ -155,24 +155,22 @@ serve(async (req) => {
 
   updateData.inventory = updatedInventory
 
-    // Update character
-    const { data: updatedPostac, error: updateError } = await supabaseAdmin
+    // Update character - separated UPDATE and SELECT
+    const { error: updateError } = await supabaseAdmin
       .from('postacie')
       .update(updateData)
       .eq('id', postac.id)
-      .select('*')
-      .single()
 
     if (updateError) {
       console.error('Update error:', updateError)
       return new Response(
-        JSON.stringify({ error: 'Failed to use item' }),
+        JSON.stringify({ error: 'Failed to use item: ' + updateError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     // Log action for audit
-    await supabaseAdmin.from('audit_log').insert({
+    const { error: auditError } = await supabaseAdmin.from('audit_log').insert({
       user_id: user.id,
       postac_id: postac.id,
       action: 'use_item',
@@ -184,14 +182,20 @@ serve(async (req) => {
         quantity_after: invItem.quantity - 1
       },
       timestamp: new Date().toISOString()
-    }).catch(err => {
-      console.error('Audit log error:', err)
     })
+    if (auditError) console.error('Audit log error:', auditError)
+
+    // Fetch updated character (if this fails, we still return success because UPDATE succeeded)
+    const { data: updatedPostac } = await supabaseAdmin
+      .from('postacie')
+      .select('*')
+      .eq('id', postac.id)
+      .single()
 
     return new Response(
       JSON.stringify({
         success: true,
-        data: updatedPostac,
+        data: updatedPostac || { ...postac, ...updateData },
         message: effectMessage,
         effect: itemEffect
       }),

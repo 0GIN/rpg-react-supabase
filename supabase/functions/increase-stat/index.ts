@@ -142,7 +142,8 @@ serve(async (req) => {
     }
 
     // Log action for audit (optional)
-    await supabaseAdmin.from('audit_log').insert({
+    // Log action for audit
+    const { error: auditError } = await supabaseAdmin.from('audit_log').insert({
       user_id: user.id,
       postac_id: postac.id,
       action: 'increase_stat',
@@ -154,10 +155,8 @@ serve(async (req) => {
         stat_points_after: currentStatPoints - 1
       },
       timestamp: new Date().toISOString()
-    }).then(() => {}).catch(err => {
-      // Don't fail the request if audit log fails
-      console.error('Audit log error:', err)
     })
+    if (auditError) console.error('Audit log error:', auditError)
 
     return new Response(
       JSON.stringify({

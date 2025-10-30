@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -29,6 +29,16 @@ export function InventoryPanel({ postac, onEquipItem, onUnequipItem, onUseItem }
       }))
       .filter(item => item.definition !== undefined)
   }, [postac.inventory])
+
+  // Update selectedItem when inventory changes (after equip/unequip)
+  useEffect(() => {
+    if (selectedItem) {
+      const updatedItem = inventoryWithDefs.find(item => item.itemId === selectedItem.itemId)
+      if (updatedItem) {
+        setSelectedItem(updatedItem)
+      }
+    }
+  }, [inventoryWithDefs, selectedItem?.itemId])
 
   // Filter inventory
   const filteredInventory = useMemo(() => {

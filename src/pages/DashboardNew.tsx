@@ -66,9 +66,9 @@ export default function DashboardNew() {
     if (!result.success) {
       console.error('Error equipping item:', result.error)
       alert('❌ Błąd: ' + result.error)
-    } else if (result.data) {
-      setPostac(result.data as Postac)
-      alert(`✅ ${result.message || 'Przedmiot założony!'}`)
+    } else {
+      // Reload data to ensure UI is in sync with database
+      await loadData()
     }
   }
 
@@ -81,9 +81,9 @@ export default function DashboardNew() {
     if (!result.success) {
       console.error('Error unequipping item:', result.error)
       alert('❌ Błąd: ' + result.error)
-    } else if (result.data) {
-      setPostac(result.data as Postac)
-      alert(`✅ ${result.message || 'Przedmiot zdjęty!'}`)
+    } else {
+      // Reload data to ensure UI is in sync with database
+      await loadData()
     }
   }
 
@@ -96,9 +96,9 @@ export default function DashboardNew() {
     if (!result.success) {
       console.error('Error using item:', result.error)
       alert('❌ Błąd: ' + result.error)
-    } else if (result.data) {
-      setPostac(result.data as Postac)
-      alert(`✅ ${result.message || 'Przedmiot użyty!'}`)
+    } else {
+      // Reload data to ensure UI is in sync with database
+      await loadData()
     }
   }
 
@@ -147,9 +147,9 @@ export default function DashboardNew() {
     if (!result.success) {
       console.error('Error increasing stat:', result.error)
       alert('❌ Błąd: ' + result.error)
-    } else if (result.data) {
-      setPostac(result.data as Postac)
-      alert(`✅ ${stat.toUpperCase()} zwiększone! ${result.message || ''}`)
+    } else {
+      // Reload data to ensure UI is in sync with database
+      await loadData()
     }
   }
 

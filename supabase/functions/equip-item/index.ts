@@ -172,35 +172,41 @@ serve(async (req) => {
         }
       }
 
-      // Update database
-      const { data: updatedPostac, error: updateError } = await supabaseAdmin
+      // Update database - separated UPDATE and SELECT
+      const { error: updateError } = await supabaseAdmin
         .from('postacie')
         .update(updateData)
         .eq('id', postac.id)
-        .select('*')
-        .single()
 
       if (updateError) {
         console.error('Update error:', updateError)
         return new Response(
-          JSON.stringify({ error: 'Failed to equip item' }),
+          JSON.stringify({ error: 'Failed to equip item: ' + updateError.message }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
       // Log action
-      await supabaseAdmin.from('audit_log').insert({
+      const { error: auditError } = await supabaseAdmin.from('audit_log').insert({
         user_id: user.id,
         postac_id: postac.id,
         action: 'equip_item',
         details: { item_id: itemId, slot: itemDef.clothingSlot },
         timestamp: new Date().toISOString()
-      }).catch(err => console.error('Audit log error:', err))
+      })
+      if (auditError) console.error('Audit log error:', auditError)
+
+      // Fetch updated character (if this fails, we still return success because UPDATE succeeded)
+      const { data: updatedPostac } = await supabaseAdmin
+        .from('postacie')
+        .select('*')
+        .eq('id', postac.id)
+        .single()
 
       return new Response(
         JSON.stringify({
           success: true,
-          data: updatedPostac,
+          data: updatedPostac || { ...postac, inventory: updateData.inventory, clothing: updateData.clothing },
           message: `Equipped ${itemId}`
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -232,35 +238,41 @@ serve(async (req) => {
         }
       }
 
-      // Update database
-      const { data: updatedPostac, error: updateError } = await supabaseAdmin
+      // Update database - separated UPDATE and SELECT
+      const { error: updateError } = await supabaseAdmin
         .from('postacie')
         .update(updateData)
         .eq('id', postac.id)
-        .select('*')
-        .single()
 
       if (updateError) {
         console.error('Update error:', updateError)
         return new Response(
-          JSON.stringify({ error: 'Failed to unequip item' }),
+          JSON.stringify({ error: 'Failed to unequip item: ' + updateError.message }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
       // Log action
-      await supabaseAdmin.from('audit_log').insert({
+      const { error: auditError } = await supabaseAdmin.from('audit_log').insert({
         user_id: user.id,
         postac_id: postac.id,
         action: 'unequip_item',
         details: { item_id: itemId, slot: itemDef.clothingSlot },
         timestamp: new Date().toISOString()
-      }).catch(err => console.error('Audit log error:', err))
+      })
+      if (auditError) console.error('Audit log error:', auditError)
+
+      // Fetch updated character (if this fails, we still return success because UPDATE succeeded)
+      const { data: updatedPostac } = await supabaseAdmin
+        .from('postacie')
+        .select('*')
+        .eq('id', postac.id)
+        .single()
 
       return new Response(
         JSON.stringify({
           success: true,
-          data: updatedPostac,
+          data: updatedPostac || { ...postac, inventory: updateData.inventory, clothing: updateData.clothing },
           message: `Unequipped ${itemId}`
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
