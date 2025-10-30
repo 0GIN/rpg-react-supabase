@@ -12,6 +12,7 @@ import { ArenaSection } from '@/components/sections/arena-section'
 import { RankingsSection } from '@/components/sections/rankings-section'
 import { GangsSection } from '@/components/sections/gangs-section'
 import { DefaultSection } from '@/components/sections/default-section'
+import { WardrobeSection } from '@/components/sections/wardrobe-section'
 
 export default function DashboardNew() {
   const [postac, setPostac] = useState<Postac | null>(null)
@@ -81,6 +82,30 @@ export default function DashboardNew() {
     setLoading(false)
   }
 
+  async function saveWardrobe(payload: { appearance: Postac['appearance']; clothing: Postac['clothing'] }) {
+    if (!postac) return
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('postacie')
+      .update({ appearance: payload.appearance, clothing: payload.clothing })
+      .eq('id', postac.id)
+      .select('*')
+      .maybeSingle()
+    if (error) {
+      const msg = error.message || ''
+      if (msg.includes("Could not find the 'clothing' column")) {
+        alert("Błąd zapisu garderoby: brak kolumny 'clothing' w tabeli 'postacie'. Uruchom migrację dodającą kolumny appearance/clothing (z repo: supabase/migrations/20251030000001_add_character_customization.sql) lub wykonaj odpowiednie ALTER TABLE w bazie.")
+      } else if (msg.includes("Could not find the 'appearance' column")) {
+        alert("Błąd zapisu garderoby: brak kolumny 'appearance' w tabeli 'postacie'. Uruchom migrację dodającą kolumny appearance/clothing.")
+      } else {
+        alert('Błąd zapisu garderoby: ' + msg)
+      }
+    } else if (data) {
+      setPostac(data)
+    }
+    setLoading(false)
+  }
+
   const renderSection = () => {
     switch (activeSection) {
       case 'missions':
@@ -102,6 +127,14 @@ export default function DashboardNew() {
         return <InventoryPanel />
       case 'rankings':
         return <RankingsSection />
+      case 'wardrobe':
+        return (
+          <WardrobeSection 
+            postac={postac}
+            onSave={saveWardrobe}
+            onBack={() => setActiveSection('missions')}
+          />
+        )
       case 'my-gang':
       case 'gang-list':
       case 'gang-wars':
@@ -130,10 +163,7 @@ export default function DashboardNew() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-1 space-y-4">
-            <CharacterPanel 
-              nick={postac?.nick || 'Loading...'}
-              level={postac?.level || 1}
-            />
+            <CharacterPanel postac={postac} onOpenWardrobe={() => setActiveSection('wardrobe')} />
             <InventoryPanel />
           </div>
 

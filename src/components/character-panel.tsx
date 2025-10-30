@@ -1,53 +1,46 @@
 "use client"
 
-import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
+import { CharacterMannequin } from "./character-mannequin"
+import type { Postac } from "@/types/gameTypes"
 import { Button } from "@/components/ui/button"
-import { Shirt, Scissors, Palette } from "lucide-react"
-import { CharacterAvatar } from "./character-avatar"
-
-interface CharacterCustomization {
-  hair: string
-  outfit: string
-  accessories: string
-  skinTone: string
-}
+import { Shirt } from "lucide-react"
 
 interface CharacterPanelProps {
-  nick?: string
-  level?: number
+  postac: Postac | null
+  onOpenWardrobe?: () => void
 }
 
-export function CharacterPanel({ nick = 'GHOST_RUNNER', level = 1 }: CharacterPanelProps) {
-  const [customization, setCustomization] = useState<CharacterCustomization>({
-    hair: "cyber-mohawk",
-    outfit: "tactical-jacket",
-    accessories: "visor",
-    skinTone: "default",
-  })
-
-  const cycleHair = () => {
-    const hairStyles = ["cyber-mohawk", "long-ponytail", "buzz-cut"]
-    const currentIndex = hairStyles.indexOf(customization.hair)
-    const nextIndex = (currentIndex + 1) % hairStyles.length
-    setCustomization({ ...customization, hair: hairStyles[nextIndex] })
+/**
+ * CharacterPanel Component
+ * 
+ * Panel wyświetlający postać na stronie głównej (dashboard)
+ * - Pokazuje manekina z ubraniami
+ * - Nick i poziom
+ * - Pasek doświadczenia
+ * - Statystyki postaci
+ */
+export function CharacterPanel({ postac, onOpenWardrobe }: CharacterPanelProps) {
+  if (!postac) {
+    return (
+      <Card className="bg-card border-primary/30">
+        <CardHeader>
+          <CardTitle className="text-primary font-mono flex items-center gap-2">
+            <span className="text-accent">▸</span>
+            POSTAĆ
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground">Ładowanie...</div>
+        </CardContent>
+      </Card>
+    )
   }
 
-  const cycleOutfit = () => {
-    const outfits = ["tactical-jacket", "street-hoodie"]
-    const currentIndex = outfits.indexOf(customization.outfit)
-    const nextIndex = (currentIndex + 1) % outfits.length
-    setCustomization({ ...customization, outfit: outfits[nextIndex] })
-  }
-
-  const cycleAccessories = () => {
-    const accessories = ["visor", "face-mask", "neural-implant", "none"]
-    const currentIndex = accessories.indexOf(customization.accessories)
-    const nextIndex = (currentIndex + 1) % accessories.length
-    setCustomization({ ...customization, accessories: accessories[nextIndex] })
-  }
+  const nick = postac.nick || 'GHOST_RUNNER'
+  const level = postac.level || 1
 
   return (
     <Card className="bg-card border-primary/30">
@@ -58,51 +51,38 @@ export function CharacterPanel({ nick = 'GHOST_RUNNER', level = 1 }: CharacterPa
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-center gap-4">
-          <div className="relative w-24 h-24 bg-muted/20 border-2 border-primary/50 rounded-sm flex items-center justify-center group">
-            <CharacterAvatar customization={customization} size="md" />
-            <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-6 w-6 text-primary hover:text-accent"
-                onClick={cycleHair}
-                title="Zmień fryzurę"
-              >
-                <Scissors className="h-3 w-3" />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-6 w-6 text-primary hover:text-accent"
-                onClick={cycleOutfit}
-                title="Zmień ubranie"
-              >
-                <Shirt className="h-3 w-3" />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-6 w-6 text-primary hover:text-accent"
-                onClick={cycleAccessories}
-                title="Zmień akcesoria"
-              >
-                <Palette className="h-3 w-3" />
-              </Button>
-            </div>
+        {/* Character Mannequin with Clothing */}
+        <div className="relative w-full h-148 bg-muted/20 border-2 border-primary/50 rounded-sm overflow-hidden flex items-center justify-center">
+          {/* Wardrobe quick action */}
+          <div className="absolute top-2 right-2 z-10">
+            <Button size="sm" variant="outline" className="h-7 px-2 text-xs font-mono"
+              onClick={onOpenWardrobe}
+              title="Garderoba">
+              <Shirt className="w-3 h-3 mr-1" />
+              GARDEROBA
+            </Button>
           </div>
-          <div className="flex-1 space-y-2">
+          <CharacterMannequin 
+            appearance={postac.appearance}
+            clothing={postac.clothing}
+            className="w-auto h-full"
+          />
+        </div>
+
+        {/* Character Info */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
             <h3 className="text-xl font-bold text-primary font-mono">{nick}</h3>
             <Badge variant="outline" className="border-accent text-accent font-mono">
               POZIOM {level}
             </Badge>
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs font-mono">
-                <span className="text-muted-foreground">DOŚWIADCZENIE</span>
-                <span className="text-foreground">8,450 / 10,000</span>
-              </div>
-              <Progress value={84.5} className="h-2" />
+          </div>
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs font-mono">
+              <span className="text-muted-foreground">DOŚWIADCZENIE</span>
+              <span className="text-foreground">8,450 / 10,000</span>
             </div>
+            <Progress value={84.5} className="h-2" />
           </div>
         </div>
 

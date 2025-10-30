@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { User, LogOut } from 'lucide-react'
+import { CharacterMannequin } from '@/components/character-mannequin'
+import type { CharacterAppearance, EquippedClothing } from '@/types/gameTypes'
 
 interface Props {
   user: any
@@ -14,13 +16,31 @@ interface Props {
 export default function Profile({ user, onProfileCreated }: Props) {
   const [nick, setNick] = useState('')
   const [loading, setLoading] = useState(false)
+  const [selectedGender, setSelectedGender] = useState<'male' | 'female'>('female')
+  
+  // Default appearance
+  const appearance: CharacterAppearance = {
+    gender: selectedGender,
+    // body/hair left empty by default; can be set in wardrobe later
+    skinTone: 'medium'
+  }
+  
+  // Default starting clothing (empty - just mannequin)
+  const clothing: EquippedClothing = {}
 
   async function handleCreateProfile() {
     if (!nick.trim()) return
     setLoading(true)
     try {
-      console.log('Creating profile:', { nick, userId: user.id })
-      const { data, error } = await supabase.from('postacie').insert([{ nick, user_id: user.id }])
+      console.log('Creating profile:', { nick, userId: user.id, appearance, clothing })
+      
+      const { data, error } = await supabase.from('postacie').insert([{ 
+        nick, 
+        user_id: user.id,
+        appearance,
+        clothing
+      }])
+      
       console.log('Insert result:', { data, error })
       if (error) {
         if ((error as any)?.code === '23505') {
@@ -61,7 +81,49 @@ export default function Profile({ user, onProfileCreated }: Props) {
             Wybierz swoją tożsamość w Neon City
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
+          {/* Character Preview */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold uppercase tracking-wider">
+              Podgląd Postaci
+            </Label>
+            <div className="relative h-48 bg-muted/20 border-2 border-primary/50 rounded-sm overflow-hidden flex items-center justify-center">
+              <CharacterMannequin 
+                appearance={appearance}
+                clothing={clothing}
+                className="w-auto h-full"
+              />
+            </div>
+          </div>
+
+          {/* Gender Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold uppercase tracking-wider">
+              Płeć
+            </Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={selectedGender === 'female' ? 'default' : 'outline'}
+                onClick={() => setSelectedGender('female')}
+                disabled={loading}
+                className="h-12"
+              >
+                Kobieta
+              </Button>
+              <Button
+                type="button"
+                variant={selectedGender === 'male' ? 'default' : 'outline'}
+                onClick={() => setSelectedGender('male')}
+                disabled={loading}
+                className="h-12"
+              >
+                Mężczyzna
+              </Button>
+            </div>
+          </div>
+
+          {/* Nick Input */}
           <div className="space-y-2">
             <Label htmlFor="nick" className="text-sm font-semibold uppercase tracking-wider">
               Nick
