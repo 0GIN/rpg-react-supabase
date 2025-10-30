@@ -22,6 +22,12 @@ import { BossesSection } from '@/components/sections/bosses-section'
 import { GangSection } from '@/components/sections/gang-section'
 import { BlackMarketSection } from '@/components/sections/blackmarket-section'
 import { TradeSection } from '@/components/sections/trade-section'
+import { ProfileModal } from '@/components/profile-modal'
+import { SettingsModal } from '@/components/settings-modal'
+import { AdminModal } from '@/components/admin-modal'
+
+// Admin user IDs (add your user ID here to get admin panel access)
+const ADMIN_USER_IDS = ['d421acc9-4b62-48ed-9606-ad945f375fa7'] // Replace with actual admin user IDs
 
 export default function DashboardNew() {
   const [postac, setPostac] = useState<Postac | null>(null)
@@ -29,10 +35,17 @@ export default function DashboardNew() {
   const [aktywne, setAktywne] = useState<AktywneZlecenie | null>(null)
   const [loading, setLoading] = useState(false)
   const [activeSection, setActiveSection] = useState('missions')
+  const [showProfile, setShowProfile] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showAdmin, setShowAdmin] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   async function loadData() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+
+    // Check if user is admin
+    setIsAdmin(ADMIN_USER_IDS.includes(user.id))
 
     const { data: postacData, error: postacError } = await supabase
       .from('postacie')
@@ -279,8 +292,18 @@ export default function DashboardNew() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <GameHeader />
+      <GameHeader 
+        isAdmin={isAdmin}
+        onOpenProfile={() => setShowProfile(true)}
+        onOpenSettings={() => setShowSettings(true)}
+        onOpenAdmin={() => setShowAdmin(true)}
+      />
       <GameNavbar onNavigate={setActiveSection} />
+
+      {/* Modals */}
+      <ProfileModal open={showProfile} onOpenChange={setShowProfile} postac={postac} />
+      <SettingsModal open={showSettings} onOpenChange={setShowSettings} />
+      <AdminModal open={showAdmin} onOpenChange={setShowAdmin} postac={postac} />
 
       <main className="container mx-auto p-4 space-y-4">
         {/* DEV TOOLS - Remove in production */}

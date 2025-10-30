@@ -57,6 +57,19 @@ export const ITEM_DEFINITIONS: Record<string, ItemDefinition> = {
     price: 600,
     sellPrice: 250,
   },
+  'cyber_pants_f': {
+    id: 'cyber_pants_f',
+    name: 'Cyber Pants',
+    type: 'clothing',
+    rarity: 'uncommon',
+    description: 'Dżinsy wzmocnione kevlarową wyściółką.',
+    clothingSlot: 'bottom',
+    imagePath: '/clothing/female/bottoms/cyber_pants_f.png',
+    clothingPath: '/clothing/female/bottoms/cyber_pants_f.png',
+    stats: { defense: 8, style: 5 },
+    price: 600,
+    sellPrice: 250,
+  },
 
   // ===== CLOTHING - SHOES =====
   'combat_boots': {
