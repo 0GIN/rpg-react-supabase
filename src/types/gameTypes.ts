@@ -1,3 +1,14 @@
+/**
+ * gameTypes.ts - Definicje typów TypeScript dla całej gry
+ * 
+ * Centralne miejsce dla wszystkich interfejsów i typów używanych w grze:
+ * - Typy przedmiotów (ItemDefinition, InventoryItem)
+ * - Dane postaci (Postac, CharacterStats, CharacterAppearance)
+ * - System zleceń (ZlecenieDefinicja, AktywneZlecenie)
+ * - Mechaniki gry (LevelData, BattleResult)
+ * - Typy pomocnicze (ItemType, ItemRarity, ClothingSlot)
+ */
+
 // Item categories and types
 export type ItemType = 'clothing' | 'weapon' | 'consumable' | 'quest_item' | 'material' | 'other'
 export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'

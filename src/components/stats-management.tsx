@@ -1,3 +1,14 @@
+/**
+ * stats-management.tsx - Zarządzanie atrybutami postaci
+ * 
+ * Interfejs do rozdysponowywania punktów atrybutów:
+ * - Wyświetla dostępne punkty do rozdania
+ * - Lista atrybutów: Siła, Zręczność, Wytrzymałość, Inteligencja, Charyzma, Szczęście
+ * - Przyciski zwiększania każdego atrybutu
+ * - Opis wpływu każdego atrybutu na rozgrywkę
+ * - Walidacja i zapis zmian w bazie danych
+ */
+
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

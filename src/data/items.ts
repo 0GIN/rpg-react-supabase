@@ -1,3 +1,16 @@
+/**
+ * items.ts - Baza danych definicji przedmiotów
+ * 
+ * Statyczna (fallback) baza wszystkich przedmiotów w grze:
+ * - Ubrania (kurtki, spodnie, buty) - z overlay na manekinie
+ * - Bronie (pistolety, noże) - ze statystykami obrażeń
+ * - Consumables (stimpaki, buffs) - efekty jednorazowe
+ * - Quest items - przedmioty fabularne
+ * - Materiały do craftingu
+ * 
+ * W produkcji dane ładowane są z tabeli 'items' w Supabase.
+ */
+
 import type { ItemDefinition } from '../types/gameTypes'
 
 // Database of all available items in the game

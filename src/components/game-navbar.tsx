@@ -1,3 +1,17 @@
+/**
+ * game-navbar.tsx - Główna nawigacja gry
+ * 
+ * Pasek nawigacyjny z kategoriami i podkategoriami:
+ * - Walka (Arena, Bossy)
+ * - Mapa (Lokacje w grze)
+ * - Społeczność (Gangi, Handel, Rankingi)
+ * - Rozwój (Umiejętności, Augmenty, Crafting)
+ * - Ekonomia (Sklep, Czarny Rynek)
+ * - Questline (Misje fabularne)
+ * 
+ * Obsługuje nawigację między sekcjami przez callback onNavigate.
+ */
+
 "use client"
 
 import type React from "react"

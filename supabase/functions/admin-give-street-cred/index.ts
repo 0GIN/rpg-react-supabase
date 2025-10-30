@@ -1,3 +1,19 @@
+/**
+ * admin-give-street-cred - Edge Function do przyznawania reputacji
+ * 
+ * Endpoint administratora do dodawania street cred (reputacji) graczom.
+ * 
+ * Request body:
+ * - postacId: number - ID postaci
+ * - streetCred: number - ilość street cred do dodania
+ * 
+ * Zwraca:
+ * - success: boolean
+ * - newStreetCred: number - nowy stan street cred
+ * 
+ * UWAGA: Admin check wyłączony (TODO w linii 28-41)
+ */
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'

@@ -1,3 +1,14 @@
+/**
+ * character-panel.tsx - Panel statystyk postaci
+ * 
+ * Wyświetla kompleksowy widok postaci gracza:
+ * - Avatar i manekin 3D z wyposażeniem
+ * - Statystyki bazowe (siła, zręczność, itd.) z bonusami z ekwipunku
+ * - Pasek poziomu i doświadczenia
+ * - Informacje o klasie i poziomie
+ * - Przycisk do otwierania garderoby
+ */
+
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

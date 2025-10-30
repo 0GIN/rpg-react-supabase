@@ -1,3 +1,14 @@
+/**
+ * Profile.tsx - Kreator postaci
+ * 
+ * Ekran tworzenia nowej postaci po pierwszym zalogowaniu.
+ * Pozwala graczowi wybrać:
+ * - Nick postaci
+ * - Płeć (male/female)
+ * - Wygląd (kolor włosów, skóry, odzież)
+ * Tworzy nowy rekord w tabeli 'postacie'.
+ */
+
 import { useState } from 'react'
 import { supabase } from '../services/supabaseClient'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'

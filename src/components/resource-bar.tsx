@@ -1,3 +1,15 @@
+/**
+ * resource-bar.tsx - Pasek zasobów gracza
+ * 
+ * Wyświetla główne zasoby postaci:
+ * - Energia (Energy) - pasek postępu
+ * - Neural - pasek postępu
+ * - Kredyty (Credits) - waluta
+ * - Street Cred - reputacja
+ * 
+ * Kompaktowy widok z ikonami i wartościami liczbowymi.
+ */
+
 import type React from "react"
 import { Progress } from "@/components/ui/progress"
 import { Zap, Cpu, DollarSign, Trophy } from "lucide-react"

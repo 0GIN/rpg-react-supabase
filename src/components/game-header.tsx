@@ -1,3 +1,13 @@
+/**
+ * game-header.tsx - Główny nagłówek gry
+ * 
+ * Górny pasek interfejsu gry zawierający:
+ * - Logo/tytuł gry
+ * - Przyciski dostępu do profilu, ustawień i panelu admina
+ * - Przycisk wylogowania
+ * - Dialog potwierdzenia wylogowania
+ */
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Settings, User, LogOut, Shield } from "lucide-react"

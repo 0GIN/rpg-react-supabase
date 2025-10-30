@@ -1,3 +1,14 @@
+/**
+ * DashboardNew.tsx - Główny dashboard gry
+ * 
+ * Główny ekran gry po zalogowaniu. Zarządza:
+ * - Wyświetlaniem statystyk i ekwipunku postaci
+ * - Nawigacją między różnymi sekcjami gry (misje, arena, rankingi, itp.)
+ * - Systemem zlecności (rozpoczynanie i odbieranie nagród)
+ * - Panelem admina (dodawanie XP, itemów, kredytów)
+ * - Zarządzaniem atrybutami postaci
+ */
+
 import { useState, useEffect } from 'react'
 import { supabase } from '../services/supabaseClient'
 import type { Postac, ZlecenieDefinicja, AktywneZlecenie, CharacterStats } from '../types/gameTypes'

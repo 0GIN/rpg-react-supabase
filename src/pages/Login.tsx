@@ -1,3 +1,11 @@
+/**
+ * Login.tsx - Strona logowania i rejestracji
+ * 
+ * Ekran uwierzytelniania użytkownika wykorzystujący Supabase Auth UI.
+ * Obsługuje logowanie, rejestrację i resetowanie hasła.
+ * Wyświetla się gdy użytkownik nie jest zalogowany.
+ */
+
 import { supabase } from '../services/supabaseClient'
 import { Auth } from '@supabase/auth-ui-react'
 import { ThemeSupa } from '@supabase/auth-ui-shared'

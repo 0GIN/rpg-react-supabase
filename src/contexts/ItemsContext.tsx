@@ -1,3 +1,11 @@
+/**
+ * ItemsContext.tsx - Globalny kontekst definicji przedmiotów
+ * 
+ * Zarządza globalnym stanem wszystkich definicji przedmiotów w grze.
+ * Ładuje dane z tabeli 'items' w Supabase i zapewnia fallback do lokalnych definicji.
+ * Wykorzystywany przez cały system inwentarza, sklepu i craftingu.
+ */
+
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { supabase } from '@/services/supabaseClient'

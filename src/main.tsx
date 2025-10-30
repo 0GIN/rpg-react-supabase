@@ -1,3 +1,11 @@
+/**
+ * main.tsx - Punkt wejścia aplikacji React
+ * 
+ * Główny plik inicjalizacyjny aplikacji. Renderuje aplikację do DOM,
+ * konfiguruje StrictMode i opakowuje aplikację w ItemsProvider dla globalnego
+ * zarządzania stanem przedmiotów w grze.
+ */
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'

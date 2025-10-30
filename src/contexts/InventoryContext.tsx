@@ -1,3 +1,11 @@
+/**
+ * InventoryContext.tsx - Kontekst ekwipunku gracza
+ * 
+ * Zarządza stanem ekwipunku (inventory) konkretnej postaci.
+ * Ładuje przedmioty z tabeli 'ekwipunek' dla danego postacId.
+ * Zapewnia funkcje do odświeżania ekwipunku po zmianach.
+ */
+
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { supabase } from '@/services/supabaseClient'

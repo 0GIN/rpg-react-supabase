@@ -1,3 +1,16 @@
+/**
+ * admin-modal.tsx - Panel administracyjny
+ * 
+ * Interfejs administracyjny gry pozwalający na:
+ * - Dodawanie XP i poziomów graczom
+ * - Przyznawanie kredytów i street cred
+ * - Dodawanie przedmiotów do ekwipunku
+ * - Edycję definicji przedmiotów w bazie
+ * - Zarządzanie graczami
+ * 
+ * Wszystkie operacje wykonywane przez Edge Functions w Supabase.
+ */
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"

@@ -1,3 +1,20 @@
+/**
+ * admin-add-item - Edge Function do dodawania przedmiotów graczom
+ * 
+ * Endpoint administratora pozwalający na dodawanie przedmiotów do ekwipunku graczy.
+ * 
+ * Request body:
+ * - postacId: number - ID postaci, której dodajemy przedmiot
+ * - itemId: string - ID przedmiotu z tabeli items
+ * - quantity: number - ilość (domyślnie 1)
+ * 
+ * Zwraca:
+ * - success: boolean - czy operacja się powiodła
+ * - newItem: object - dodany przedmiot z ID
+ * 
+ * UWAGA: Obecnie admin check jest wyłączony (TODO w linii 28-41)
+ */
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'

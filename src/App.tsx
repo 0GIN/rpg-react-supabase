@@ -1,3 +1,13 @@
+/**
+ * App.tsx - Główny komponent aplikacji
+ * 
+ * Zarządza routingiem aplikacji i sesją użytkownika. Odpowiada za:
+ * - Uwierzytelnianie przez Supabase
+ * - Sprawdzanie istnienia profilu gracza
+ * - Przekierowanie między ekranem logowania, tworzeniem profilu i głównym dashboardem
+ * - Zapewnienie motywu (ThemeProvider)
+ */
+
 import { useEffect, useState } from 'react'
 import { supabase } from './services/supabaseClient'
 import Login from './pages/Login'

@@ -1,3 +1,13 @@
+/**
+ * levelSystem.ts - Obliczenia systemu poziomów i statystyk
+ * 
+ * Funkcje pomocnicze do zarządzania systemem progresji:
+ * - Obliczanie wymaganego doświadczenia na kolejny poziom
+ * - Kalkulacja całkowitych statystyk postaci (bazowe + bonusy z ekwipunku)
+ * - Wyznaczanie bonusów z ekwipunku
+ * - System poziomów z wykładniczym skalowaniem trudności
+ */
+
 import type { CharacterStats, LevelData } from '@/types/gameTypes'
 
 /**

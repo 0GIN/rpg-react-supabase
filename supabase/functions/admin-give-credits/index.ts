@@ -1,3 +1,19 @@
+/**
+ * admin-give-credits - Edge Function do przyznawania kredytów
+ * 
+ * Endpoint administratora do dodawania waluty (kredytów) graczom.
+ * 
+ * Request body:
+ * - postacId: number - ID postaci
+ * - credits: number - ilość kredytów do dodania
+ * 
+ * Zwraca:
+ * - success: boolean
+ * - newCredits: number - nowy stan kredytów
+ * 
+ * UWAGA: Admin check wyłączony (TODO w linii 28-41)
+ */
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'

@@ -1,3 +1,16 @@
+/**
+ * inventory-panel.tsx - Panel ekwipunku gracza
+ * 
+ * Zarządza wyświetlaniem i interakcją z ekwipunkiem postaci:
+ * - Lista wszystkich przedmiotów w ekwipunku
+ * - Filtrowanie po typie (broń, zbroja, consumables, etc.)
+ * - Wyposażanie/zdejmowanie przedmiotów
+ * - Używanie consumables
+ * - Wyświetlanie statystyk przedmiotów
+ * 
+ * Wykorzystuje InventoryContext do zarządzania stanem.
+ */
+
 import { useMemo, useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"

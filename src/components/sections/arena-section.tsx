@@ -1,3 +1,13 @@
+/**
+ * arena-section.tsx - Sekcja Areny PvP
+ * 
+ * Interfejs walk gracza przeciwko innym graczom:
+ * - Pojedynki 1v1 z rankingiem
+ * - Turnieje z nagrodami
+ * - Ligowe rozgrywki
+ * (Obecnie placeholder - do implementacji)
+ */
+
 import { Trophy, Swords, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 

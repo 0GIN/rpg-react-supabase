@@ -1,3 +1,13 @@
+/**
+ * mission-panel.tsx - Panel zleceń
+ * 
+ * Wyświetla dostępne zlecenia i aktywne zadanie:
+ * - Lista wszystkich zleceń z wymaganiami i nagrodami
+ * - Status aktywnego zlecenia z odliczaniem czasu
+ * - Przyciski rozpoczynania zleceń i odbierania nagród
+ * - Sprawdzanie wymagań poziomowych
+ */
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Clock, DollarSign, Trophy } from "lucide-react"

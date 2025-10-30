@@ -1,3 +1,22 @@
+/**
+ * admin-give-exp - Edge Function do przyznawania doświadczenia
+ * 
+ * Endpoint administratora do dodawania XP graczom.
+ * Automatycznie obsługuje level-upy i przyznawanie punktów atrybutów.
+ * 
+ * Request body:
+ * - postacId: number - ID postaci
+ * - exp: number - ilość doświadczenia do dodania
+ * 
+ * Zwraca:
+ * - success: boolean
+ * - newLevel: number - nowy poziom (jeśli był level-up)
+ * - leveledUp: boolean - czy nastąpił awans
+ * - pointsGained: number - ile punktów atrybutów przyznano
+ * 
+ * UWAGA: Admin check wyłączony (TODO w linii 28-41)
+ */
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
