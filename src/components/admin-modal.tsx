@@ -64,9 +64,17 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
       const result = await response.json()
 
       if (!response.ok) {
+        console.error('❌ Admin add item failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: result.error,
+          result
+        })
         throw new Error(result.error || 'Failed to add item')
       }
 
+      console.log('✅ Admin add item success:', result)
+      
       toast({
         title: 'Sukces',
         description: result.message
@@ -76,6 +84,7 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
       setTargetNick('')
       setItemQuantity(1)
     } catch (error: any) {
+      console.error('❌ Admin add item exception:', error)
       toast({
         title: 'Błąd',
         description: error.message,
@@ -115,9 +124,17 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
       const result = await response.json()
 
       if (!response.ok) {
+        console.error('❌ Admin give credits failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: result.error,
+          result
+        })
         throw new Error(result.error || 'Failed to give credits')
       }
 
+      console.log('✅ Admin give credits success:', result)
+      
       toast({
         title: 'Sukces',
         description: result.message
@@ -125,6 +142,7 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
 
       setTargetNick('')
     } catch (error: any) {
+      console.error('❌ Admin give credits exception:', error)
       toast({
         title: 'Błąd',
         description: error.message,
@@ -164,9 +182,17 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
       const result = await response.json()
 
       if (!response.ok) {
+        console.error('❌ Admin give exp failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: result.error,
+          result
+        })
         throw new Error(result.error || 'Failed to give EXP')
       }
 
+      console.log('✅ Admin give exp success:', result)
+      
       let message = result.message
       if (result.levelsGained > 0) {
         message += ` (${result.levelsGained} poziomów, +${result.statPointsGained} punktów statów!)`
@@ -179,6 +205,7 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
 
       setTargetNick('')
     } catch (error: any) {
+      console.error('❌ Admin give exp exception:', error)
       toast({
         title: 'Błąd',
         description: error.message,
@@ -218,9 +245,17 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
       const result = await response.json()
 
       if (!response.ok) {
+        console.error('❌ Admin give street cred failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: result.error,
+          result
+        })
         throw new Error(result.error || 'Failed to give street cred')
       }
 
+      console.log('✅ Admin give street cred success:', result)
+      
       toast({
         title: 'Sukces',
         description: result.message
@@ -228,6 +263,7 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
 
       setTargetNick('')
     } catch (error: any) {
+      console.error('❌ Admin give street cred exception:', error)
       toast({
         title: 'Błąd',
         description: error.message,
