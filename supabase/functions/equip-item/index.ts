@@ -103,18 +103,28 @@ serve(async (req) => {
       )
     }
 
-    // Validate item exists in inventory
-    const inventory = postac.inventory || []
-    const invItemIndex = inventory.findIndex((item: any) => item.itemId === itemId)
+    // Validate item exists in inventory (DB-backed)
+    const { data: ekwItem, error: ekwErr } = await supabaseAdmin
+      .from('ekwipunek')
+      .select('id, postac_id, item_id, ilosc, zalozony')
+      .eq('postac_id', postac.id)
+      .eq('item_id', itemId)
+      .maybeSingle()
 
-    if (invItemIndex === -1) {
+    if (ekwErr) {
+      console.error('Error reading ekwipunek:', ekwErr)
+      return new Response(
+        JSON.stringify({ error: 'Failed to read inventory' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!ekwItem) {
       return new Response(
         JSON.stringify({ error: 'Item not found in inventory' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    const invItem = inventory[invItemIndex]
 
     if (action === 'equip') {
       // Validate requirements
@@ -143,7 +153,7 @@ serve(async (req) => {
       }
 
       // Check if already equipped
-      if (invItem.equipped) {
+      if (ekwItem.zalozony) {
         return new Response(
           JSON.stringify({ error: 'Item is already equipped' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -154,10 +164,22 @@ serve(async (req) => {
       if (itemDef.type === 'clothing' && itemDef.clothingSlot) {
         const slot = itemDef.clothingSlot
 
-        // Fetch clothing slots for currently equipped items once from DB
-        const equippedIds = inventory
-          .filter((it: any) => it.equipped && it.itemId !== itemId)
-          .map((it: any) => it.itemId)
+        // Find already equipped items and their slots
+        const { data: equippedRows, error: eqErr } = await supabaseAdmin
+          .from('ekwipunek')
+          .select('item_id')
+          .eq('postac_id', postac.id)
+          .eq('zalozony', true)
+
+        if (eqErr) {
+          console.error('Error reading equipped items:', eqErr)
+          return new Response(
+            JSON.stringify({ error: 'Failed to read equipped items' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        const equippedIds = (equippedRows || []).map((r: any) => r.item_id).filter((id: string) => id !== itemId)
 
         let slotMap: Record<string, string | null> = {}
         if (equippedIds.length > 0) {
@@ -169,8 +191,6 @@ serve(async (req) => {
             for (const d of defs) slotMap[d.item_id] = d.clothing_slot
           }
         }
-
-        // Fallback for any items not found in DB
         for (const id of equippedIds) {
           if (!(id in slotMap)) {
             const fb = FALLBACK_ITEM_DATA[id]
@@ -179,25 +199,38 @@ serve(async (req) => {
         }
 
         // Unequip any item occupying the same slot
-        for (let i = 0; i < inventory.length; i++) {
-          const otherItem = inventory[i]
-          if (otherItem.equipped && otherItem.itemId !== itemId) {
-            const otherSlot = slotMap[otherItem.itemId] ?? null
-            if (otherSlot === slot) {
-              inventory[i] = { ...otherItem, equipped: false }
-            }
+        const conflicts = equippedIds.filter((id: string) => (slotMap[id] ?? null) === slot)
+        if (conflicts.length > 0) {
+          const { error: unEqErr } = await supabaseAdmin
+            .from('ekwipunek')
+            .update({ zalozony: false })
+            .eq('postac_id', postac.id)
+            .in('item_id', conflicts)
+          if (unEqErr) {
+            console.error('Error unequipping conflicting items:', unEqErr)
+            return new Response(
+              JSON.stringify({ error: 'Failed to unequip conflicting items' }),
+              { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
           }
         }
       }
 
-      // Equip item
-      inventory[invItemIndex] = { ...invItem, equipped: true }
+      // Mark item as equipped in DB
+      const { error: setEqErr } = await supabaseAdmin
+        .from('ekwipunek')
+        .update({ zalozony: true })
+        .eq('id', ekwItem.id)
+      if (setEqErr) {
+        console.error('Error equipping item in DB:', setEqErr)
+        return new Response(
+          JSON.stringify({ error: 'Failed to equip item' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
 
       // Update clothing paths for mannequin
-      const updateData: any = { 
-        inventory,
-          // updated_at: new Date().toISOString() // Removed to prevent failures
-      }
+      const updateData: any = { }
 
       if (itemDef.type === 'clothing' && itemDef.clothingSlot && itemDef.clothingPath) {
         const clothing = postac.clothing || {}
@@ -249,21 +282,28 @@ serve(async (req) => {
 
     } else if (action === 'unequip') {
       // Check if item is equipped
-      if (!invItem.equipped) {
+      if (!ekwItem.zalozony) {
         return new Response(
           JSON.stringify({ error: 'Item is not equipped' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
-      // Unequip item
-      inventory[invItemIndex] = { ...invItem, equipped: false }
+      // Unequip item in DB
+      const { error: unEqErr } = await supabaseAdmin
+        .from('ekwipunek')
+        .update({ zalozony: false })
+        .eq('id', ekwItem.id)
+      if (unEqErr) {
+        console.error('Error unequipping item in DB:', unEqErr)
+        return new Response(
+          JSON.stringify({ error: 'Failed to unequip item' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
 
       // Update clothing paths for mannequin
-      const updateData: any = { 
-        inventory,
-          // updated_at: new Date().toISOString() // Removed to prevent failures
-      }
+      const updateData: any = { }
 
       if (itemDef.type === 'clothing' && itemDef.clothingSlot) {
         const clothing = postac.clothing || {}
@@ -273,7 +313,7 @@ serve(async (req) => {
         }
       }
 
-      // Update database - separated UPDATE and SELECT
+  // Update database - separated UPDATE and SELECT
       const { error: updateError } = await supabaseAdmin
         .from('postacie')
         .update(updateData)
