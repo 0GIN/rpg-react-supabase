@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Package, Filter, Shirt, Swords, Pill, Wrench } from "lucide-react"
 import type { Postac, InventoryItem, ItemType } from "@/types/gameTypes"
-import { getItemDefinition, RARITY_COLORS } from "@/data/items"
+import { useItems } from "@/contexts/ItemsContext"
+import { InventoryProvider, useInventory } from "@/contexts/InventoryContext"
+import { RARITY_COLORS } from "@/data/items"
 
 interface InventoryPanelProps {
   postac: Postac
@@ -15,20 +17,21 @@ interface InventoryPanelProps {
 
 type FilterType = 'all' | ItemType
 
-export function InventoryPanel({ postac, onEquipItem, onUnequipItem, onUseItem }: InventoryPanelProps) {
+function InventoryPanelContent({ onEquipItem, onUnequipItem, onUseItem }: Omit<InventoryPanelProps, 'postac'>) {
   const [filter, setFilter] = useState<FilterType>('all')
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
+  const { items } = useItems()
+  const { inventory } = useInventory()
 
   // Get inventory with item definitions
   const inventoryWithDefs = useMemo(() => {
-    const inventory = postac.inventory || []
     return inventory
       .map(invItem => ({
         ...invItem,
-        definition: getItemDefinition(invItem.itemId)
+        definition: items[invItem.itemId]
       }))
       .filter(item => item.definition !== undefined)
-  }, [postac.inventory])
+  }, [inventory, items])
 
   // Update selectedItem when inventory changes (after equip/unequip)
   useEffect(() => {
@@ -64,7 +67,7 @@ export function InventoryPanel({ postac, onEquipItem, onUnequipItem, onUseItem }
     return counts
   }, [inventoryWithDefs])
 
-  const selectedDef = selectedItem ? getItemDefinition(selectedItem.itemId) : null
+  const selectedDef = selectedItem ? items[selectedItem.itemId] : null
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -224,7 +227,7 @@ export function InventoryPanel({ postac, onEquipItem, onUnequipItem, onUseItem }
                   {Object.entries(selectedDef.stats).map(([stat, value]) => (
                     <div key={stat} className="flex justify-between text-sm">
                       <span className="text-muted-foreground capitalize">{stat}:</span>
-                      <span className="text-foreground font-mono">+{value}</span>
+                      <span className="text-foreground font-mono">+{String(value)}</span>
                     </div>
                   ))}
                 </div>
@@ -290,5 +293,13 @@ export function InventoryPanel({ postac, onEquipItem, onUnequipItem, onUseItem }
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export function InventoryPanel(props: InventoryPanelProps) {
+  return (
+    <InventoryProvider postacId={props.postac?.id}>
+      <InventoryPanelContent {...props} />
+    </InventoryProvider>
   )
 }

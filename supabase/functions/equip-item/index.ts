@@ -2,15 +2,15 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { getCorsHeaders } from '../_shared/cors.ts'
 
-// Item definitions - should match your items.ts
-const ITEM_DATA: Record<string, {
+// Temporary fallback item definitions while migrating to DB-backed items
+const FALLBACK_ITEM_DATA: Record<string, {
   type: string
   clothingSlot?: 'top' | 'bottom' | 'shoes' | 'accessory' | 'implant'
   clothingPath?: string
   requiredLevel?: number
   requiredStats?: Record<string, number>
 }> = {
-  // Clothing
+  // Clothing (kept minimal; will be removed once DB is the single source)
   'cyber_jacket_f': { type: 'clothing', clothingSlot: 'top', clothingPath: '/clothing/female/tops/cyber_jacket_f.png' },
   'tactical_vest': { type: 'clothing', clothingSlot: 'top', clothingPath: '/clothing/unisex/tops/tactical_vest.png' },
   'cargo_pants': { type: 'clothing', clothingSlot: 'bottom', clothingPath: '/clothing/unisex/bottoms/cargo_pants.png' },
@@ -21,8 +21,6 @@ const ITEM_DATA: Record<string, {
   // Weapons
   'pistol_9mm': { type: 'weapon' },
   'plasma_rifle': { type: 'weapon', requiredLevel: 10 },
-  
-  // Add more items as needed
 }
 
 serve(async (req) => {
@@ -69,11 +67,24 @@ serve(async (req) => {
       )
     }
 
-    // Get item definition
-    const itemDef = ITEM_DATA[itemId]
+    // Fetch item definition from DB (single source of truth)
+    const { data: dbItem } = await supabaseAdmin
+      .from('items')
+      .select('item_id, typ, required_level, required_stats, clothing_slot, clothing_path')
+      .eq('item_id', itemId)
+      .maybeSingle()
+
+    const itemDef = dbItem ? {
+      type: dbItem.typ as 'clothing' | 'weapon' | 'consumable' | 'quest' | 'misc' | 'cyberware',
+      clothingSlot: dbItem.clothing_slot as 'top' | 'bottom' | 'shoes' | 'accessory' | 'implant' | undefined,
+      clothingPath: dbItem.clothing_path as string | undefined,
+      requiredLevel: (dbItem.required_level ?? undefined) as number | undefined,
+      requiredStats: (dbItem.required_stats ?? undefined) as Record<string, number> | undefined,
+    } : FALLBACK_ITEM_DATA[itemId]
+
     if (!itemDef) {
       return new Response(
-        JSON.stringify({ error: 'Item not found in database' }),
+        JSON.stringify({ error: 'Item definition not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -139,16 +150,40 @@ serve(async (req) => {
         )
       }
 
-      // For clothing items, unequip current item in same slot
+      // For clothing items, unequip current item in same slot (DB-backed)
       if (itemDef.type === 'clothing' && itemDef.clothingSlot) {
         const slot = itemDef.clothingSlot
-        
-        // Unequip any item in the same slot
+
+        // Fetch clothing slots for currently equipped items once from DB
+        const equippedIds = inventory
+          .filter((it: any) => it.equipped && it.itemId !== itemId)
+          .map((it: any) => it.itemId)
+
+        let slotMap: Record<string, string | null> = {}
+        if (equippedIds.length > 0) {
+          const { data: defs } = await supabaseAdmin
+            .from('items')
+            .select('item_id, clothing_slot')
+            .in('item_id', equippedIds)
+          if (defs) {
+            for (const d of defs) slotMap[d.item_id] = d.clothing_slot
+          }
+        }
+
+        // Fallback for any items not found in DB
+        for (const id of equippedIds) {
+          if (!(id in slotMap)) {
+            const fb = FALLBACK_ITEM_DATA[id]
+            slotMap[id] = fb?.clothingSlot ?? null
+          }
+        }
+
+        // Unequip any item occupying the same slot
         for (let i = 0; i < inventory.length; i++) {
           const otherItem = inventory[i]
           if (otherItem.equipped && otherItem.itemId !== itemId) {
-            const otherDef = ITEM_DATA[otherItem.itemId]
-            if (otherDef?.clothingSlot === slot) {
+            const otherSlot = slotMap[otherItem.itemId] ?? null
+            if (otherSlot === slot) {
               inventory[i] = { ...otherItem, equipped: false }
             }
           }

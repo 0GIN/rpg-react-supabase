@@ -97,6 +97,30 @@ serve(async (req) => {
       if (insertError) throw insertError
     }
 
+    // Tymczasowa synchronizacja: dopisz także do JSON postacie.inventory, dopóki UI nie przejdzie na tabelę ekwipunek
+    const { data: charInvRow } = await supabaseAdmin
+      .from('postacie')
+      .select('id, inventory')
+      .eq('id', targetChar.id)
+      .single()
+
+    if (charInvRow) {
+      const inv = Array.isArray(charInvRow.inventory) ? charInvRow.inventory : []
+      const idx = inv.findIndex((it: any) => it.itemId === itemId)
+      if (idx >= 0) {
+        inv[idx] = { ...inv[idx], quantity: (inv[idx].quantity || 0) + finalQuantity }
+      } else {
+        inv.push({ itemId, quantity: finalQuantity, obtainedAt: new Date().toISOString() })
+      }
+      const { error: invUpdateErr } = await supabaseAdmin
+        .from('postacie')
+        .update({ inventory: inv })
+        .eq('id', targetChar.id)
+      if (invUpdateErr) {
+        console.error('Inventory JSON sync error:', invUpdateErr)
+      }
+    }
+
     // Zapisz w audit logu
     const { error: auditError } = await supabaseAdmin
       .from('audit_log')

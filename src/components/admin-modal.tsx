@@ -8,8 +8,9 @@ import { Shield, Package, Users, Database } from "lucide-react"
 import { useState } from "react"
 import { supabase } from "@/services/supabaseClient"
 import { useToast } from "@/hooks/use-toast"
-import { ITEM_DEFINITIONS } from "@/data/items"
-import type { Postac, ItemDefinition } from "@/types/gameTypes"
+import { useItems } from "@/contexts/ItemsContext"
+import { ItemEditorTab } from "@/components/admin/ItemEditorTab"
+import type { Postac } from "@/types/gameTypes"
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 
@@ -21,6 +22,7 @@ interface AdminModalProps {
 
 export function AdminModal({ open, onOpenChange }: AdminModalProps) {
   const { toast } = useToast()
+  const { items } = useItems()
   const [activeTab, setActiveTab] = useState<'items' | 'players' | 'database'>('items')
   const [loading, setLoading] = useState(false)
   
@@ -186,11 +188,11 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
     }
   }
 
-  // Get all available items
-  const availableItems = Object.entries(ITEM_DEFINITIONS).map(([id, item]) => ({
+  // Get all available items from context
+  const availableItems = Object.entries(items).map(([id, item]) => ({
     id,
-    name: (item as ItemDefinition).name,
-    type: (item as ItemDefinition).type
+    name: item.name,
+    type: item.type
   }))
 
   return (
@@ -438,28 +440,7 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
           )}
 
           {activeTab === 'database' && (
-            <Card className="bg-muted/50 border-yellow-500/30">
-              <CardContent className="p-4">
-                <h4 className="font-mono text-yellow-500 mb-3">NARZĘDZIA BAZY DANYCH</h4>
-                <p className="text-muted-foreground text-sm mb-4">
-                  Bezpośredni dostęp do bazy danych przez Supabase Dashboard.
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => window.open('https://supabase.com/dashboard', '_blank')}
-                  className="w-full"
-                >
-                  Otwórz Supabase Dashboard
-                </Button>
-
-                <div className="mt-4 space-y-2 text-xs text-muted-foreground">
-                  <p>• SQL Editor</p>
-                  <p>• Table Editor</p>
-                  <p>• Database Logs</p>
-                  <p>• Backups & Migrations</p>
-                </div>
-              </CardContent>
-            </Card>
+            <ItemEditorTab />
           )}
         </div>
 
