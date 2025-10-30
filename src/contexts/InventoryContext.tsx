@@ -82,6 +82,17 @@ export function InventoryProvider({ children, postacId }: { children: ReactNode;
     loadInventory()
   }, [postacId])
 
+  // Listen for inventory changes event
+  useEffect(() => {
+    const handleInventoryChange = () => {
+      console.log('🔄 Inventory changed event received, reloading...')
+      loadInventory()
+    }
+
+    window.addEventListener('inventory-changed', handleInventoryChange)
+    return () => window.removeEventListener('inventory-changed', handleInventoryChange)
+  }, [postacId])
+
   return (
     <InventoryContext.Provider value={{ inventory, loading, error, refetch: loadInventory }}>
       {children}

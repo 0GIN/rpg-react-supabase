@@ -1,0 +1,32 @@
+{
+  "female": {
+    "body": [
+      "/clothing/female/body/female_body_01.png",
+      "/clothing/female/body/female_body_02.png",
+      "/clothing/female/body/female_body_03.png"
+    ],
+    "hair": [
+      "/clothing/female/hair/female_hair_01.png"
+    ],
+    "tops": [],
+    "bottoms": [],
+    "shoes": [],
+    "accessories": [],
+    "implants": []
+  },
+  "male": {
+    "body": [
+      "/clothing/male/body/male_body_01.png",
+      "/clothing/male/body/male_body_02.png",
+      "/clothing/male/body/male_body_03.png"
+    ],
+    "hair": [
+      "/clothing/male/hair/male_hair_01.png"
+    ],
+    "tops": [],
+    "bottoms": [],
+    "shoes": [],
+    "accessories": [],
+    "implants": []
+  }
+}

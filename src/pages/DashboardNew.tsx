@@ -86,6 +86,8 @@ export default function DashboardNew() {
     } else {
       // Reload data to ensure UI is in sync with database
       await loadData()
+      // Trigger a hard reload by dispatching a custom event
+      window.dispatchEvent(new CustomEvent('inventory-changed'))
     }
   }
 
@@ -101,6 +103,8 @@ export default function DashboardNew() {
     } else {
       // Reload data to ensure UI is in sync with database
       await loadData()
+      // Trigger a hard reload by dispatching a custom event
+      window.dispatchEvent(new CustomEvent('inventory-changed'))
     }
   }
 

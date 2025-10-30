@@ -32,6 +32,7 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
   const [itemQuantity, setItemQuantity] = useState<number>(1)
   const [creditAmount, setCreditAmount] = useState<number>(1000)
   const [expAmount, setExpAmount] = useState<number>(100)
+  const [streetCredAmount, setStreetCredAmount] = useState<number>(10)
 
   async function handleAddItemToPlayer() {
     if (!selectedItemId || !targetNick.trim()) {
@@ -174,6 +175,55 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
       toast({
         title: 'Sukces',
         description: message
+      })
+
+      setTargetNick('')
+    } catch (error: any) {
+      toast({
+        title: 'Błąd',
+        description: error.message,
+        variant: 'destructive'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleGiveStreetCred() {
+    if (!targetNick.trim()) {
+      toast({
+        title: 'Błąd',
+        description: 'Wprowadź nick gracza',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    try {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-give-street-cred`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({
+          targetNick: targetNick.trim(),
+          amount: streetCredAmount
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to give street cred')
+      }
+
+      toast({
+        title: 'Sukces',
+        description: result.message
       })
 
       setTargetNick('')
@@ -345,6 +395,23 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
                         disabled={loading || !targetNick.trim()}
                       >
                         Dodaj EXP
+                      </Button>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        value={streetCredAmount}
+                        onChange={(e) => setStreetCredAmount(parseInt(e.target.value) || 0)}
+                        placeholder="Ilość Street Cred"
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={handleGiveStreetCred}
+                        disabled={loading || !targetNick.trim()}
+                      >
+                        Dodaj Street Cred
                       </Button>
                     </div>
                   </div>
