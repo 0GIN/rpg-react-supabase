@@ -32,13 +32,37 @@ export default function Profile({ user, onProfileCreated }: Props) {
     if (!nick.trim()) return
     setLoading(true)
     try {
-      console.log('Creating profile:', { nick, userId: user.id, appearance, clothing })
+      // Starting inventory - give player some basic items
+      const startingInventory = [
+        { itemId: 'medkit', quantity: 3, obtainedAt: new Date().toISOString() },
+        { itemId: 'energy_drink', quantity: 5, obtainedAt: new Date().toISOString() },
+        { itemId: 'pistol_9mm', quantity: 1, obtainedAt: new Date().toISOString() },
+        { itemId: 'combat_boots', quantity: 1, obtainedAt: new Date().toISOString() },
+        { itemId: 'cargo_pants', quantity: 1, obtainedAt: new Date().toISOString() },
+      ]
+      
+      // Starting stats - each stat begins at 1, with 5 free points to spend
+      const startingStats = {
+        strength: 1,
+        intelligence: 1,
+        endurance: 1,
+        agility: 1,
+        charisma: 1,
+        luck: 1,
+      }
+      
+      console.log('Creating profile:', { nick, userId: user.id, appearance, clothing, inventory: startingInventory, stats: startingStats })
       
       const { data, error } = await supabase.from('postacie').insert([{ 
         nick, 
         user_id: user.id,
         appearance,
-        clothing
+        clothing,
+        inventory: startingInventory,
+        level: 1,
+        experience: 0,
+        stat_points: 5, // 5 free points to start
+        stats: startingStats,
       }])
       
       console.log('Insert result:', { data, error })

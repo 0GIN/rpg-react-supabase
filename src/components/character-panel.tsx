@@ -7,6 +7,8 @@ import { CharacterMannequin } from "./character-mannequin"
 import type { Postac } from "@/types/gameTypes"
 import { Button } from "@/components/ui/button"
 import { Shirt } from "lucide-react"
+import { calculateExpForNextLevel, calculateTotalStats, calculateEquipmentBonuses } from "@/utils/levelSystem"
+import { getItemDefinition } from "@/data/items"
 
 interface CharacterPanelProps {
   postac: Postac | null
@@ -41,6 +43,32 @@ export function CharacterPanel({ postac, onOpenWardrobe }: CharacterPanelProps) 
 
   const nick = postac.nick || 'GHOST_RUNNER'
   const level = postac.level || 1
+  const experience = postac.experience || 0
+  const expForNext = calculateExpForNextLevel(level)
+  const expProgress = (experience / expForNext) * 100
+
+  // Calculate stats with equipment bonuses
+  const baseStats = postac.stats || {
+    strength: 1,
+    intelligence: 1,
+    endurance: 1,
+    agility: 1,
+    charisma: 1,
+    luck: 1
+  }
+
+  // Get equipped items
+  const equippedItems = (postac.inventory || [])
+    .filter(item => item.equipped)
+    .map(item => {
+      const def = getItemDefinition(item.itemId)
+      return def ? { ...item, definition: def } : null
+    })
+    .filter(item => item !== null)
+
+  // Calculate total stats (base + equipment)
+  const equipmentBonuses = calculateEquipmentBonuses(equippedItems as any)
+  const totalStats = calculateTotalStats(baseStats, equipmentBonuses)
 
   return (
     <Card className="bg-card border-primary/30">
@@ -80,29 +108,31 @@ export function CharacterPanel({ postac, onOpenWardrobe }: CharacterPanelProps) 
           <div className="space-y-1">
             <div className="flex justify-between text-xs font-mono">
               <span className="text-muted-foreground">DOŚWIADCZENIE</span>
-              <span className="text-foreground">8,450 / 10,000</span>
+              <span className="text-foreground">{experience.toLocaleString()} / {expForNext.toLocaleString()}</span>
             </div>
-            <Progress value={84.5} className="h-2" />
+            <Progress value={expProgress} className="h-2" />
           </div>
         </div>
 
         <div className="space-y-2 pt-2 border-t border-border">
-          <StatRow label="SIŁA" value={45} />
-          <StatRow label="REFLEKS" value={62} />
-          <StatRow label="TECH" value={71} />
-          <StatRow label="INTELIGENCJA" value={38} />
-          <StatRow label="OPANOWANIE" value={54} />
+          <StatRow label="SIŁA" value={totalStats.strength} max={100} />
+          <StatRow label="INTELIGENCJA" value={totalStats.intelligence} max={100} />
+          <StatRow label="WYTRZYMAŁOŚĆ" value={totalStats.endurance} max={100} />
+          <StatRow label="ZRĘCZNOŚĆ" value={totalStats.agility} max={100} />
+          <StatRow label="CHARYZMA" value={totalStats.charisma} max={100} />
+          <StatRow label="SZCZĘŚCIE" value={totalStats.luck} max={100} />
         </div>
       </CardContent>
     </Card>
   )
 }
 
-function StatRow({ label, value }: { label: string; value: number }) {
+function StatRow({ label, value, max = 100 }: { label: string; value: number; max?: number }) {
+  const percentage = Math.min((value / max) * 100, 100)
   return (
     <div className="flex items-center gap-3">
       <span className="text-xs font-mono text-muted-foreground w-28">{label}</span>
-      <Progress value={value} className="h-2 flex-1" />
+      <Progress value={percentage} className="h-2 flex-1" />
       <span className="text-sm font-mono text-foreground w-8 text-right">{value}</span>
     </div>
   )

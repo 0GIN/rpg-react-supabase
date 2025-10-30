@@ -48,11 +48,10 @@ export default function Dashboard() {
 
   async function startMission(zlecenieId: number) {
     setLoading(true)
-    const { error } = await supabase.functions.invoke('rozpocznij-zlecenie', {
-      body: { zlecenie_id: zlecenieId }
-    })
-    if (error) {
-      alert('Błąd: ' + error.message)
+    const secureApi = await import('@/services/secureApi')
+    const result = await secureApi.rozpocznijZlecenie(zlecenieId)
+    if (!result.success) {
+      alert('Błąd: ' + (result.error || 'Request failed'))
     } else {
       await loadData()
     }
@@ -61,11 +60,10 @@ export default function Dashboard() {
 
   async function collectReward() {
     setLoading(true)
-    const res: any = await supabase.functions.invoke('odbierz-nagrode')
-    console.log('odbierz-nagrode response:', res)
-    const { error } = res
-    if (error) {
-      alert('Błąd przy odbieraniu nagrody: ' + (error.message || JSON.stringify(error)))
+    const secureApi = await import('@/services/secureApi')
+    const result = await secureApi.odbierjNagrode(0)
+    if (!result.success) {
+      alert('Błąd przy odbieraniu nagrody: ' + (result.error || 'Request failed'))
     } else {
       await loadData()
     }

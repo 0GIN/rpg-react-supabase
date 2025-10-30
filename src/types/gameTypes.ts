@@ -1,12 +1,31 @@
-// Item in player's inventory
-export interface InventoryItem {
+// Item categories and types
+export type ItemType = 'clothing' | 'weapon' | 'consumable' | 'quest_item' | 'material' | 'other'
+export type ItemRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'
+export type ClothingSlot = 'top' | 'bottom' | 'shoes' | 'accessory' | 'implant'
+
+// Base item definition (can be from database or hardcoded)
+export interface ItemDefinition {
   id: string
   name: string
-  type: 'augmentation' | 'weapon' | 'consumable' | 'quest_item' | 'other'
-  stats?: Record<string, number>  // e.g., {"hacking": 5, "combat": 2}
-  quantity: number
-  equipped?: boolean
+  type: ItemType
+  rarity: ItemRarity
   description?: string
+  imagePath?: string  // Icon or image for the item
+  stats?: Record<string, number>  // e.g., {"strength": 5, "defense": 10}
+  price?: number  // Buy price in kredyty
+  sellPrice?: number  // Sell price (usually lower than buy price)
+  clothingSlot?: ClothingSlot  // Only for clothing items
+  clothingPath?: string  // Path to PNG overlay for clothing (e.g., '/clothing/female/tops/jacket.png')
+  stackable?: boolean  // Can multiple items stack in one inventory slot?
+  maxStack?: number  // Maximum stack size (e.g., 99 for consumables)
+}
+
+// Item in player's inventory
+export interface InventoryItem {
+  itemId: string  // References ItemDefinition.id
+  quantity: number
+  equipped?: boolean  // Is this item currently equipped?
+  obtainedAt?: string  // Timestamp when obtained
 }
 
 // Character appearance customization
@@ -28,13 +47,34 @@ export interface EquippedClothing {
   implant?: string    // Implant: '/clothing/female/implants/cyber-arm.png'
 }
 
+// Character statistics (can be increased infinitely)
+export interface CharacterStats {
+  strength: number      // Siła - zwiększa obrażenia fizyczne
+  intelligence: number  // Inteligencja - zwiększa hacking, rewards
+  endurance: number     // Wytrzymałość - zwiększa HP
+  agility: number       // Zwinność - zwiększa szanse na unik, krytyki
+  charisma: number      // Charyzma - lepsze ceny, dialogi
+  luck: number          // Szczęście - wpływa na losowe eventy, loot
+}
+
+// Level progression data
+export interface LevelData {
+  level: number
+  experience: number
+  experienceToNextLevel: number
+  statPoints: number  // Unused stat points available to spend
+}
+
 export interface Postac {
   id: number
   nick: string
   kredyty: number
   street_cred: number
   user_id: string
-  level?: number  // Player level (1-100)
+  level?: number  // Player level (1-∞)
+  experience?: number  // Current experience points
+  stat_points?: number  // Unspent stat points
+  stats?: CharacterStats  // JSONB - character statistics
   inventory?: InventoryItem[]  // JSONB array of items
   appearance?: CharacterAppearance  // JSONB - character base appearance
   clothing?: EquippedClothing  // JSONB - equipped clothing items

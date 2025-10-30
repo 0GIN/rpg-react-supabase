@@ -8,7 +8,7 @@ interface ResourceBarProps {
   neural?: number
   maxNeural?: number
   credits?: number
-  rank?: number
+  street_cred?: number
 }
 
 export function ResourceBar({ 
@@ -16,8 +16,8 @@ export function ResourceBar({
   maxEnergy = 100, 
   neural = 1250, 
   maxNeural = 2000, 
-  credits = 0, 
-  rank = 0 
+  credits = 0,
+  street_cred = 0
 }: ResourceBarProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -30,7 +30,13 @@ export function ResourceBar({
         max={null}
         color="text-secondary"
       />
-      <ResourceItem icon={<Trophy className="h-5 w-5" />} label="RANK" current={rank} max={null} color="text-primary" />
+      <ResourceItem 
+        icon={<Trophy className="h-5 w-5" />} 
+        label="STREET CRED" 
+        current={street_cred} 
+        max={null} 
+        color="text-purple-400" 
+      />
     </div>
   )
 }
