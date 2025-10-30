@@ -35,20 +35,28 @@ export function InventoryProvider({ children, postacId }: { children: ReactNode;
         .eq('postac_id', postacId)
 
       if (ekwipunekError) {
-        console.warn('⚠️ Ekwipunek table not found or error, falling back to JSON inventory:', ekwipunekError)
+        // Check if table doesn't exist (code 42P01) or other permission error
+        const tableNotFound = ekwipunekError.code === '42P01' || ekwipunekError.message.includes('does not exist')
         
-        // Fallback to postacie.inventory JSON
-        const { data: postacData, error: postacError } = await supabase
-          .from('postacie')
-          .select('inventory')
-          .eq('id', postacId)
-          .single()
+        if (tableNotFound) {
+          console.warn('⚠️ Ekwipunek table not found, falling back to JSON inventory:', ekwipunekError)
+          
+          // Fallback to postacie.inventory JSON
+          const { data: postacData, error: postacError } = await supabase
+            .from('postacie')
+            .select('inventory')
+            .eq('id', postacId)
+            .single()
 
-        if (postacError) throw postacError
+          if (postacError) throw postacError
 
-        const jsonInventory = (postacData?.inventory || []) as InventoryItem[]
-        setInventory(jsonInventory)
-        console.log('✅ Loaded inventory from JSON fallback:', jsonInventory.length, 'items')
+          const jsonInventory = (postacData?.inventory || []) as InventoryItem[]
+          setInventory(jsonInventory)
+          console.log('✅ Loaded inventory from JSON fallback:', jsonInventory.length, 'items')
+        } else {
+          // Other error, rethrow
+          throw ekwipunekError
+        }
       } else {
         // Map ekwipunek table to InventoryItem format
         const inventoryItems: InventoryItem[] = ekwipunekData.map(row => ({
