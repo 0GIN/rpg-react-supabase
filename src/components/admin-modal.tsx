@@ -3,12 +3,15 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Shield, Package, Users, Database, Plus } from "lucide-react"
+import { Shield, Package, Users, Database } from "lucide-react"
 import { useState } from "react"
 import { supabase } from "@/services/supabaseClient"
-import type { Postac } from "@/types/gameTypes"
+import { useToast } from "@/hooks/use-toast"
+import { ITEM_DEFINITIONS } from "@/data/items"
+import type { Postac, ItemDefinition } from "@/types/gameTypes"
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
 
 interface AdminModalProps {
   open: boolean
@@ -16,80 +19,179 @@ interface AdminModalProps {
   postac: Postac | null
 }
 
-export function AdminModal({ open, onOpenChange, postac }: AdminModalProps) {
+export function AdminModal({ open, onOpenChange }: AdminModalProps) {
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState<'items' | 'players' | 'database'>('items')
+  const [loading, setLoading] = useState(false)
   
-  // Item creation form
-  const [newItem, setNewItem] = useState({
-    itemId: '',
-    name: '',
-    type: 'consumable' as const,
-    rarity: 'common' as const,
-    description: '',
-    price: 0,
-    stats: '',
-  })
+  // Admin forms
+  const [selectedItemId, setSelectedItemId] = useState<string>('')
+  const [targetNick, setTargetNick] = useState<string>('')
+  const [itemQuantity, setItemQuantity] = useState<number>(1)
+  const [creditAmount, setCreditAmount] = useState<number>(1000)
+  const [expAmount, setExpAmount] = useState<number>(100)
 
   async function handleAddItemToPlayer() {
-    if (!postac || !newItem.itemId) {
-      alert('Wprowadź ID przedmiotu')
+    if (!selectedItemId || !targetNick.trim()) {
+      toast({
+        title: 'Błąd',
+        description: 'Wybierz przedmiot i wprowadź nick gracza',
+        variant: 'destructive'
+      })
       return
     }
 
-    const { addMultipleItems } = await import('@/utils/inventory')
-    const result = await addMultipleItems(postac.id, [
-      { itemId: newItem.itemId, quantity: 1 }
-    ])
-
-    if (result.success) {
-      alert(`✅ Dodano przedmiot: ${newItem.itemId}`)
-      setNewItem({
-        itemId: '',
-        name: '',
-        type: 'consumable',
-        rarity: 'common',
-        description: '',
-        price: 0,
-        stats: '',
+    try {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-add-item`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({
+          targetNick: targetNick.trim(),
+          itemId: selectedItemId,
+          quantity: itemQuantity
+        })
       })
-    } else {
-      alert('❌ Błąd: ' + result.error)
-    }
-  }
 
-  async function handleGiveCredits(amount: number) {
-    if (!postac) return
+      const result = await response.json()
 
-    const { error } = await supabase
-      .from('postacie')
-      .update({ kredyty: (postac.kredyty || 0) + amount })
-      .eq('id', postac.id)
-
-    if (error) {
-      alert('❌ Błąd: ' + error.message)
-    } else {
-      alert(`✅ Dodano ${amount} kredytów`)
-      window.location.reload()
-    }
-  }
-
-  async function handleGiveExp(amount: number) {
-    if (!postac) return
-
-    const { devGiveExp } = await import('@/utils/experience')
-    const result = await devGiveExp(postac.id, amount)
-
-    if (result.success) {
-      if (result.leveledUp) {
-        alert(`🎉 Dodano ${amount} EXP! LEVEL UP do ${result.newLevel}!`)
-      } else {
-        alert(`✅ Dodano ${amount} EXP`)
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to add item')
       }
-      window.location.reload()
-    } else {
-      alert('❌ Błąd: ' + result.error)
+
+      toast({
+        title: 'Sukces',
+        description: result.message
+      })
+
+      setSelectedItemId('')
+      setTargetNick('')
+      setItemQuantity(1)
+    } catch (error: any) {
+      toast({
+        title: 'Błąd',
+        description: error.message,
+        variant: 'destructive'
+      })
+    } finally {
+      setLoading(false)
     }
   }
+
+  async function handleGiveCredits() {
+    if (!targetNick.trim()) {
+      toast({
+        title: 'Błąd',
+        description: 'Wprowadź nick gracza',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    try {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-give-credits`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({
+          targetNick: targetNick.trim(),
+          amount: creditAmount
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to give credits')
+      }
+
+      toast({
+        title: 'Sukces',
+        description: result.message
+      })
+
+      setTargetNick('')
+    } catch (error: any) {
+      toast({
+        title: 'Błąd',
+        description: error.message,
+        variant: 'destructive'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleGiveExp() {
+    if (!targetNick.trim()) {
+      toast({
+        title: 'Błąd',
+        description: 'Wprowadź nick gracza',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    try {
+      setLoading(true)
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/admin-give-exp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({
+          targetNick: targetNick.trim(),
+          expAmount: expAmount
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to give EXP')
+      }
+
+      let message = result.message
+      if (result.levelsGained > 0) {
+        message += ` (${result.levelsGained} poziomów, +${result.statPointsGained} punktów statów!)`
+      }
+
+      toast({
+        title: 'Sukces',
+        description: message
+      })
+
+      setTargetNick('')
+    } catch (error: any) {
+      toast({
+        title: 'Błąd',
+        description: error.message,
+        variant: 'destructive'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Get all available items
+  const availableItems = Object.entries(ITEM_DEFINITIONS).map(([id, item]) => ({
+    id,
+    name: (item as ItemDefinition).name,
+    type: (item as ItemDefinition).type
+  }))
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -132,31 +234,60 @@ export function AdminModal({ open, onOpenChange, postac }: AdminModalProps) {
         <div className="space-y-4">
           {activeTab === 'items' && (
             <>
-              {/* Add item to current player */}
+              {/* Add item to player */}
               <Card className="bg-muted/50 border-yellow-500/30">
                 <CardContent className="p-4">
                   <h4 className="font-mono text-yellow-500 mb-3 flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
+                    <Package className="w-4 h-4" />
                     DODAJ PRZEDMIOT DO GRACZA
                   </h4>
 
                   <div className="space-y-3">
                     <div>
-                      <Label htmlFor="item-id">ID Przedmiotu</Label>
+                      <Label htmlFor="target-nick">Nick gracza</Label>
                       <Input
-                        id="item-id"
-                        value={newItem.itemId}
-                        onChange={(e) => setNewItem({ ...newItem, itemId: e.target.value })}
-                        placeholder="np. cyber_jacket_f"
+                        id="target-nick"
+                        value={targetNick}
+                        onChange={(e) => setTargetNick(e.target.value)}
+                        placeholder="Wprowadź nick gracza"
                         className="font-mono"
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Dostępne: cyber_jacket_f, tactical_vest, plasma_rifle, smart_glasses, military_cyberarm, stimpack, rare_crystal
-                      </p>
                     </div>
 
-                    <Button onClick={handleAddItemToPlayer} className="w-full">
-                      Dodaj przedmiot do {postac?.nick}
+                    <div>
+                      <Label htmlFor="item-select">Wybierz przedmiot</Label>
+                      <Select value={selectedItemId} onValueChange={setSelectedItemId}>
+                        <SelectTrigger id="item-select">
+                          <SelectValue placeholder="Wybierz przedmiot..." />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {availableItems.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.name} ({item.type}) - ID: {item.id}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="item-quantity">Ilość</Label>
+                      <Input
+                        id="item-quantity"
+                        type="number"
+                        min="1"
+                        value={itemQuantity}
+                        onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
+                        className="font-mono"
+                      />
+                    </div>
+
+                    <Button 
+                      onClick={handleAddItemToPlayer} 
+                      className="w-full"
+                      disabled={loading || !selectedItemId || !targetNick.trim()}
+                    >
+                      {loading ? 'Dodawanie...' : 'Dodaj przedmiot'}
                     </Button>
                   </div>
                 </CardContent>
@@ -166,31 +297,54 @@ export function AdminModal({ open, onOpenChange, postac }: AdminModalProps) {
               <Card className="bg-muted/50 border-yellow-500/30">
                 <CardContent className="p-4">
                   <h4 className="font-mono text-yellow-500 mb-3">SZYBKIE AKCJE</h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleGiveCredits(1000)}
-                    >
-                      + 1000 kredytów
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleGiveCredits(10000)}
-                    >
-                      + 10000 kredytów
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleGiveExp(100)}
-                    >
-                      + 100 EXP
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleGiveExp(1000)}
-                    >
-                      + 1000 EXP
-                    </Button>
+                  
+                  <div className="space-y-3 mb-4">
+                    <div>
+                      <Label htmlFor="quick-nick">Nick gracza</Label>
+                      <Input
+                        id="quick-nick"
+                        value={targetNick}
+                        onChange={(e) => setTargetNick(e.target.value)}
+                        placeholder="Wprowadź nick gracza"
+                        className="font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        value={creditAmount}
+                        onChange={(e) => setCreditAmount(parseInt(e.target.value) || 0)}
+                        placeholder="Ilość kredytów"
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={handleGiveCredits}
+                        disabled={loading || !targetNick.trim()}
+                      >
+                        Dodaj kredyty
+                      </Button>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        value={expAmount}
+                        onChange={(e) => setExpAmount(parseInt(e.target.value) || 0)}
+                        placeholder="Ilość EXP"
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={handleGiveExp}
+                        disabled={loading || !targetNick.trim()}
+                      >
+                        Dodaj EXP
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -245,7 +399,7 @@ export function AdminModal({ open, onOpenChange, postac }: AdminModalProps) {
 
                     <div>
                       <Label>Opis</Label>
-                      <Textarea placeholder="Opis przedmiotu..." disabled />
+                      <Input placeholder="Opis przedmiotu..." disabled />
                     </div>
 
                     <div>

@@ -26,9 +26,6 @@ import { ProfileModal } from '@/components/profile-modal'
 import { SettingsModal } from '@/components/settings-modal'
 import { AdminModal } from '@/components/admin-modal'
 
-// Admin user IDs (add your user ID here to get admin panel access)
-const ADMIN_USER_IDS = ['d421acc9-4b62-48ed-9606-ad945f375fa7'] // Replace with actual admin user IDs
-
 export default function DashboardNew() {
   const [postac, setPostac] = useState<Postac | null>(null)
   const [zlecenia, setZlecenia] = useState<ZlecenieDefinicja[]>([])
@@ -44,8 +41,15 @@ export default function DashboardNew() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Check if user is admin
-    setIsAdmin(ADMIN_USER_IDS.includes(user.id))
+    // Check if user is admin from database
+    const { data: adminData } = await supabase
+      .from('admin_users')
+      .select('is_admin')
+      .eq('user_id', user.id)
+      .eq('is_admin', true)
+      .single()
+    
+    setIsAdmin(!!adminData)
 
     const { data: postacData, error: postacError } = await supabase
       .from('postacie')
