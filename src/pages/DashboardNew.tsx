@@ -14,6 +14,14 @@ import { GangsSection } from '@/components/sections/gangs-section'
 import { DefaultSection } from '@/components/sections/default-section'
 import { WardrobeSection } from '@/components/sections/wardrobe-section'
 import { StatsManagement } from '@/components/stats-management'
+import { MapSection } from '@/components/sections/map-section'
+import { ShopSection } from '@/components/sections/shop-section'
+import { AugmentsSection } from '@/components/sections/augments-section'
+import { CraftingSection } from '@/components/sections/crafting-section'
+import { BossesSection } from '@/components/sections/bosses-section'
+import { GangSection } from '@/components/sections/gang-section'
+import { BlackMarketSection } from '@/components/sections/blackmarket-section'
+import { TradeSection } from '@/components/sections/trade-section'
 
 export default function DashboardNew() {
   const [postac, setPostac] = useState<Postac | null>(null)
@@ -212,8 +220,6 @@ export default function DashboardNew() {
         />
       case 'arena':
         return <ArenaSection />
-      case 'bosses':
-        return <DefaultSection />
       case 'skills':
       case 'stats':
         return postac ? (
@@ -244,11 +250,28 @@ export default function DashboardNew() {
           />
         )
       case 'my-gang':
+        return <GangSection />
       case 'gang-list':
       case 'gang-wars':
       case 'territory':
       case 'gangs':
         return <GangsSection />
+      case 'map':
+      case 'districts':
+      case 'locations':
+        return <MapSection />
+      case 'shop':
+        return <ShopSection />
+      case 'blackmarket':
+        return <BlackMarketSection />
+      case 'trade':
+        return <TradeSection />
+      case 'augments':
+        return <AugmentsSection />
+      case 'crafting':
+        return <CraftingSection />
+      case 'bosses':
+        return <BossesSection />
       default:
         return <DefaultSection />
     }
