@@ -8,8 +8,8 @@
  * Obsługuje rozpoczynanie zleceń i odbieranie nagród.
  */
 
-import { MissionPanel } from "@/components/mission-panel"
-import { ActivityLog } from "@/components/activity-log"
+import { MissionPanel } from "@/components/panels/mission-panel"
+import { ActivityLog } from "@/components/logs/activity-log"
 import type { ZlecenieDefinicja, AktywneZlecenie } from '@/types/gameTypes'
 
 interface MissionsSectionProps {

@@ -159,4 +159,128 @@
     border-image: linear-gradient(45deg, transparent, currentColor, transparent) 1;
     pointer-events: none;
   }
+
+  /* ========================================
+     COMPACT AUTH FORM - HORIZONTAL LAYOUT
+     ======================================== */
+  
+  /* Hide labels completely */
+  .auth-compact label,
+  .supabase-auth-ui_ui-label,
+  label[for*="email"],
+  label[for*="password"] {
+    display: none !important;
+  }
+
+  /* Hide dividers */
+  .supabase-auth-ui_ui-divider {
+    display: none !important;
+  }
+
+  /* ===== CRITICAL: FORM INLINE LAYOUT ===== */
+  
+  /* Container - allow form to be centered */
+  .auth-compact,
+  div[class*="supabase-auth-ui_ui-container"] {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* FORM - single line with nowrap */
+  .auth-compact form,
+  div[class*="supabase-auth-ui_ui-container"] form {
+    display: inline-block !important;
+    white-space: nowrap !important;
+    text-align: left !important;
+  }
+
+  /* ALL CHILDREN OF FORM - INLINE! */
+  .auth-compact form > *,
+  div[class*="supabase-auth-ui_ui-container"] form > * {
+    display: inline-block !important;
+    vertical-align: middle !important;
+    margin: 0 4px !important;
+  }
+
+  /* ALL DIVS INSIDE FORM - INLINE! */
+  .auth-compact form div,
+  div[class*="supabase-auth-ui_ui-container"] form div {
+    display: inline-block !important;
+    vertical-align: middle !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* CRITICAL: Email input styling */
+  .auth-compact input[type="email"],
+  .auth-input-compact,
+  .supabase-auth-ui_ui-container input[type="email"],
+  form input[type="email"],
+  input[name="email"],
+  input[autocomplete="email"] {
+    display: inline-block !important;
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    padding: 6px 10px !important;
+    margin: 0 !important;
+    float: none !important;
+  }
+
+  /* CRITICAL: Password input styling */
+  .auth-compact input[type="password"],
+  .auth-input-compact,
+  .supabase-auth-ui_ui-container input[type="password"],
+  form input[type="password"],
+  input[name="password"],
+  input[autocomplete*="password"] {
+    display: inline-block !important;
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+    padding: 6px 10px !important;
+    margin: 0 !important;
+    float: none !important;
+  }
+
+  /* CRITICAL: Submit button styling */
+  .auth-compact button[type="submit"],
+  .auth-button-compact,
+  .supabase-auth-ui_ui-container button[type="submit"],
+  form button[type="submit"],
+  button[class*="supabase-auth"] {
+    display: inline-block !important;
+    padding: 6px 16px !important;
+    margin: 0 !important;
+    width: auto !important;
+    white-space: nowrap !important;
+    float: none !important;
+  }
+
+  /* Links container - separate row */
+  .auth-compact > div:not(form),
+  .supabase-auth-ui_ui-container > div:last-child {
+    display: block !important;
+    text-align: center !important;
+    margin-top: 8px !important;
+    width: 100% !important;
+  }
+
+  /* Links styling */
+  .supabase-auth-ui_ui-anchor,
+  a[class*="supabase-auth"] {
+    display: inline-block !important;
+    font-size: 11px !important;
+    margin: 0 6px !important;
+    text-decoration: underline !important;
+  }
+
+  /* Error messages */
+  .supabase-auth-ui_ui-message {
+    display: block !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+    font-size: 12px !important;
+    text-align: center !important;
+  }
 }

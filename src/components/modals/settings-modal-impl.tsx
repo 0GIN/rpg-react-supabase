@@ -6,8 +6,8 @@ import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Settings, Volume2, Bell, Eye, Palette } from "lucide-react"
 import { useState, useEffect } from "react"
-import { supabase } from '../services/supabaseClient'
-import { useToast } from '../hooks/use-toast'
+import { supabase } from '@/services/supabaseClient'
+import { useToast } from '@/hooks/use-toast'
 
 interface SettingsModalProps {
   open: boolean

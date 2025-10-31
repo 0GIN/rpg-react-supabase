@@ -14,7 +14,7 @@ import Login from './pages/Login'
 import Profile from './pages/Profile'
 import DashboardNew from './pages/DashboardNew'
 import type { Session } from '@supabase/supabase-js'
-import { ThemeProvider } from '@/components/theme-provider'
+import { ThemeProvider } from '@/components/providers/theme-provider'
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)

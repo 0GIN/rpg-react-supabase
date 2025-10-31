@@ -1,16 +1,3 @@
-/**
- * admin-modal.tsx - Panel administracyjny
- * 
- * Interfejs administracyjny gry pozwalający na:
- * - Dodawanie XP i poziomów graczom
- * - Przyznawanie kredytów i street cred
- * - Dodawanie przedmiotów do ekwipunku
- * - Edycję definicji przedmiotów w bazie
- * - Zarządzanie graczami
- * 
- * Wszystkie operacje wykonywane przez Edge Functions w Supabase.
- */
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -287,11 +274,10 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
     }
   }
 
-  // Get all available items from context
   const availableItems = Object.entries(items).map(([id, item]) => ({
     id,
     name: item.name,
-    type: item.type
+    type: item.type,
   }))
 
   return (
@@ -304,7 +290,6 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
           </DialogTitle>
         </DialogHeader>
 
-        {/* Tabs */}
         <div className="flex gap-2 border-b border-border">
           <Button
             variant={activeTab === 'items' ? 'default' : 'ghost'}
@@ -335,7 +320,6 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
         <div className="space-y-4">
           {activeTab === 'items' && (
             <>
-              {/* Add item to player */}
               <Card className="bg-muted/50 border-yellow-500/30">
                 <CardContent className="p-4">
                   <h4 className="font-mono text-yellow-500 mb-3 flex items-center gap-2">
@@ -376,15 +360,15 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
                       <Input
                         id="item-quantity"
                         type="number"
-                        min="1"
+                        min={1}
                         value={itemQuantity}
                         onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
                         className="font-mono"
                       />
                     </div>
 
-                    <Button 
-                      onClick={handleAddItemToPlayer} 
+                    <Button
+                      onClick={handleAddItemToPlayer}
                       className="w-full"
                       disabled={loading || !selectedItemId || !targetNick.trim()}
                     >
@@ -394,11 +378,10 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
                 </CardContent>
               </Card>
 
-              {/* Quick actions */}
               <Card className="bg-muted/50 border-yellow-500/30">
                 <CardContent className="p-4">
                   <h4 className="font-mono text-yellow-500 mb-3">SZYBKIE AKCJE</h4>
-                  
+
                   <div className="space-y-3 mb-4">
                     <div>
                       <Label htmlFor="quick-nick">Nick gracza</Label>
@@ -467,7 +450,6 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
                 </CardContent>
               </Card>
 
-              {/* Item definition creator (mockup) */}
               <Card className="bg-muted/50 border-yellow-500/30">
                 <CardContent className="p-4">
                   <h4 className="font-mono text-yellow-500 mb-3">KREATOR NOWEGO PRZEDMIOTU (NIEDOSTĘPNE)</h4>
@@ -555,9 +537,7 @@ export function AdminModal({ open, onOpenChange }: AdminModalProps) {
             </Card>
           )}
 
-          {activeTab === 'database' && (
-            <ItemEditorTab />
-          )}
+          {activeTab === 'database' && <ItemEditorTab />}
         </div>
 
         <div className="text-xs text-yellow-500/70 text-center pt-2 border-t border-yellow-500/20">

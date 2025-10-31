@@ -1,4 +1,4 @@
-import { SkillsPanel } from "@/components/skills-panel"
+import { SkillsPanel } from "@/components/panels/skills-panel"
 
 export function SkillsSection() {
   return (

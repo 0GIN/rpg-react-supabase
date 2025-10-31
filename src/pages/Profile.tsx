@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { User, LogOut } from 'lucide-react'
-import { CharacterMannequin } from '@/components/character-mannequin'
+import { CharacterMannequin } from '@/components/avatar/character-mannequin'
 import type { CharacterAppearance, EquippedClothing } from '@/types/gameTypes'
 
 interface Props {
@@ -28,15 +28,22 @@ export default function Profile({ user, onProfileCreated }: Props) {
   const [nick, setNick] = useState('')
   const [loading, setLoading] = useState(false)
   const [selectedGender, setSelectedGender] = useState<'male' | 'female'>('female')
+  const [selectedBody, setSelectedBody] = useState<number>(1)
+  const [selectedHair, setSelectedHair] = useState<number>(1)
   
-  // Default appearance
+  // Available body types per gender
+  const availableBodies = selectedGender === 'female' ? [1, 2, 3, 4, 5] : [1]
+  const availableHairs = [1] // Currently only 1 hair per gender
+  
+  // Dynamic appearance based on selections
   const appearance: CharacterAppearance = {
     gender: selectedGender,
-    // body/hair left empty by default; can be set in wardrobe later
+    body: `/clothing/${selectedGender}/body/${selectedGender}_body_${String(selectedBody).padStart(2, '0')}.png`,
+    hair: `/clothing/${selectedGender}/hair/${selectedGender}_hair_${String(selectedHair).padStart(2, '0')}.png`,
     skinTone: 'medium'
   }
   
-  // Default starting clothing (empty - just mannequin)
+  // Default starting clothing (empty - just mannequin + body + hair)
   const clothing: EquippedClothing = {}
 
   async function handleCreateProfile() {
@@ -122,46 +129,19 @@ export default function Profile({ user, onProfileCreated }: Props) {
             <Label className="text-sm font-semibold uppercase tracking-wider">
               Podgląd Postaci
             </Label>
-            <div className="relative h-48 bg-muted/20 border-2 border-primary/50 rounded-sm overflow-hidden flex items-center justify-center">
+            <div className="relative h-96 bg-muted/20 border-2 border-primary/50 rounded-lg overflow-hidden flex items-center justify-center shadow-inner">
               <CharacterMannequin 
                 appearance={appearance}
                 clothing={clothing}
-                className="w-auto h-full"
+                className="w-auto h-full scale-110"
               />
             </div>
           </div>
 
-          {/* Gender Selection */}
-          <div className="space-y-2">
-            <Label className="text-sm font-semibold uppercase tracking-wider">
-              Płeć
-            </Label>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                variant={selectedGender === 'female' ? 'default' : 'outline'}
-                onClick={() => setSelectedGender('female')}
-                disabled={loading}
-                className="h-12"
-              >
-                Kobieta
-              </Button>
-              <Button
-                type="button"
-                variant={selectedGender === 'male' ? 'default' : 'outline'}
-                onClick={() => setSelectedGender('male')}
-                disabled={loading}
-                className="h-12"
-              >
-                Mężczyzna
-              </Button>
-            </div>
-          </div>
-
-          {/* Nick Input */}
+          {/* Nick Input - moved to top */}
           <div className="space-y-2">
             <Label htmlFor="nick" className="text-sm font-semibold uppercase tracking-wider">
-              Nick
+              Nick Postaci
             </Label>
             <Input
               id="nick"
@@ -175,6 +155,89 @@ export default function Profile({ user, onProfileCreated }: Props) {
             />
             <p className="text-xs text-muted-foreground">
               Max 20 znaków. To będzie Twoja nazwa w grze.
+            </p>
+          </div>
+
+          {/* Gender Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold uppercase tracking-wider">
+              Płeć
+            </Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={selectedGender === 'female' ? 'default' : 'outline'}
+                onClick={() => {
+                  setSelectedGender('female')
+                  setSelectedBody(1) // Reset to first available body
+                  setSelectedHair(1)
+                }}
+                disabled={loading}
+                className="h-12"
+              >
+                Kobieta
+              </Button>
+              <Button
+                type="button"
+                variant={selectedGender === 'male' ? 'default' : 'outline'}
+                onClick={() => {
+                  setSelectedGender('male')
+                  setSelectedBody(1)
+                  setSelectedHair(1)
+                }}
+                disabled={loading}
+                className="h-12"
+              >
+                Mężczyzna
+              </Button>
+            </div>
+          </div>
+
+          {/* Body Type Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold uppercase tracking-wider">
+              Postura
+            </Label>
+            <div className="grid grid-cols-5 gap-2">
+              {availableBodies.map((bodyId) => (
+                <Button
+                  key={bodyId}
+                  type="button"
+                  variant={selectedBody === bodyId ? 'default' : 'outline'}
+                  onClick={() => setSelectedBody(bodyId)}
+                  disabled={loading}
+                  className="h-12 px-2 text-xs"
+                >
+                  {bodyId}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Wybierz typ postury swojej postaci
+            </p>
+          </div>
+
+          {/* Hair Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold uppercase tracking-wider">
+              Fryzura
+            </Label>
+            <div className="grid grid-cols-5 gap-2">
+              {availableHairs.map((hairId) => (
+                <Button
+                  key={hairId}
+                  type="button"
+                  variant={selectedHair === hairId ? 'default' : 'outline'}
+                  onClick={() => setSelectedHair(hairId)}
+                  disabled={loading}
+                  className="h-12 px-2 text-xs"
+                >
+                  {hairId}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Wybierz fryzurę swojej postaci
             </p>
           </div>
         </CardContent>

@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CharacterMannequin } from "@/components/character-mannequin"
+import { CharacterMannequin } from "@/components/avatar/character-mannequin"
 import type { CharacterAppearance, EquippedClothing, Postac } from "@/types/gameTypes"
 import { ArrowLeft, Save } from "lucide-react"
 

@@ -31,43 +31,57 @@ export function ItemsProvider({ children }: { children: ReactNode }) {
       setLoading(true)
       setError(null)
 
-      const { data: dbItems, error: fetchError } = await supabase
-        .from('items')
-        .select('*')
+      // Pobierz session token
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session) {
+        console.warn('⚠️ No session, using fallback items')
+        setItems(ITEM_DEFINITIONS)
+        setLoading(false)
+        return
+      }
+
+      // Wywołaj Edge Function zamiast bezpośredniego query
+      const { data: response, error: fetchError } = await supabase.functions.invoke('get-items', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      })
 
       if (fetchError) throw fetchError
 
-      if (dbItems && dbItems.length > 0) {
+      if (response?.items && response.items.length > 0) {
         // Map DB items to ItemDefinition format
+        // Edge Function już dostosował ścieżki do płci użytkownika
         const itemsMap: Record<string, ItemDefinition> = {}
         
-        for (const dbItem of dbItems) {
+        for (const dbItem of response.items) {
           itemsMap[dbItem.item_id] = {
             id: dbItem.item_id,
-            name: dbItem.nazwa,
-            type: dbItem.typ as ItemDefinition['type'],
-            rarity: dbItem.rzadkosc as ItemDefinition['rarity'],
-            description: dbItem.opis || undefined,
+            name: dbItem.name,
+            type: dbItem.type as ItemDefinition['type'],
+            rarity: dbItem.rarity as ItemDefinition['rarity'],
+            description: dbItem.description || undefined,
             imagePath: dbItem.image_path || undefined,
             clothingSlot: dbItem.clothing_slot as ItemDefinition['clothingSlot'] || undefined,
             clothingPath: dbItem.clothing_path || undefined,
-            stats: dbItem.staty || undefined,
-            price: dbItem.cena || undefined,
-            sellPrice: dbItem.cena_sprzedazy || undefined,
+            stats: dbItem.stats || undefined,
+            price: dbItem.value || undefined,
+            sellPrice: Math.floor((dbItem.value || 0) * 0.5) || undefined,
             stackable: dbItem.stackable || undefined,
             maxStack: dbItem.max_stack || undefined,
           }
         }
 
         setItems(itemsMap)
-        console.log('✅ Loaded items from database:', Object.keys(itemsMap).length)
+        console.log('✅ Loaded items from Edge Function (gender-adjusted):', Object.keys(itemsMap).length, `(${response.userGender})`)
       } else {
         // Fallback to static definitions if DB is empty
-        console.warn('⚠️ No items in database, using fallback from items.ts')
+        console.warn('⚠️ No items from Edge Function, using fallback from items.ts')
         setItems(ITEM_DEFINITIONS)
       }
     } catch (err) {
-      console.error('❌ Error loading items from DB:', err)
+      console.error('❌ Error loading items from Edge Function:', err)
       setError(err instanceof Error ? err.message : 'Failed to load items')
       // Keep fallback items on error
       setItems(ITEM_DEFINITIONS)
